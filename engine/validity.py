@@ -6,7 +6,7 @@ are two formulas equivalent, and does a conclusion follow from the premises.
 from dataclasses import dataclass
 
 from engine.formula import Formula
-from engine.truth_table import TruthTable
+from engine.truth_table import TruthTable, build_truth_table
 
 
 def classify(formula: Formula) -> str:
@@ -14,7 +14,14 @@ def classify(formula: Formula) -> str:
     Returns "tautology" (true on every row), "contradiction" (false on every row)
     or "contingency" (a mix).
     """
-    raise NotImplementedError("classify")
+    table = build_truth_table([formula])
+    results = [row.values[0] for row in table.rows]
+
+    if all(results):
+        return "tautology"
+    if not any(results):
+        return "contradiction"
+    return "contingency"
 
 
 def are_equivalent(a: Formula, b: Formula) -> bool:
@@ -22,7 +29,8 @@ def are_equivalent(a: Formula, b: Formula) -> bool:
     Logical equivalence: the two formulas agree on every row.
     The table is built over the atoms of both, so P and P ∧ (Q ∨ ¬Q) are equivalent.
     """
-    raise NotImplementedError("are_equivalent")
+    table = build_truth_table([a, b])
+    return all(row.values[0] == row.values[1] for row in table.rows)
 
 
 @dataclass
@@ -42,4 +50,23 @@ def check_argument(premises: list[Formula], conclusion: Formula) -> ArgumentResu
       - no premises: every row is critical, so the argument is valid only if C is a tautology
       - contradictory premises: there are no critical rows, so the argument is valid whatever C is
     """
-    raise NotImplementedError("check_argument")
+    table = build_truth_table(premises + [conclusion])
+
+    critical_rows = []
+    counterexamples = []
+    for index, row in enumerate(table.rows):
+        premise_values = row.values[:-1]
+        conclusion_value = row.values[-1]
+
+        # all([]) is True, which is what makes every row critical when there are no premises.
+        if all(premise_values):
+            critical_rows.append(index)
+            if not conclusion_value:
+                counterexamples.append(index)
+
+    return ArgumentResult(
+        valid=len(counterexamples) == 0,
+        table=table,
+        critical_rows=critical_rows,
+        counterexamples=counterexamples,
+    )

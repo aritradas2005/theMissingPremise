@@ -1,28 +1,61 @@
 import pytest
 
-todo = pytest.mark.skip(reason="not written yet")
+from engine import evaluate, format_formula, get_atoms, get_subformulas, parse
 
 
-@todo
 def test_get_atoms_is_alphabetical_without_duplicates():
-    pass
+    assert get_atoms(parse("(Q -> P) & (R | Q) & ~P")) == ["P", "Q", "R"]
 
 
-@todo
-def test_evaluate_follows_the_truth_table_of_each_connective():
-    pass
+# Each row is: formula, then its value for (P, Q) = TT, TF, FT, FF.
+CONNECTIVE_TABLES = [
+    ("~P", [False, False, True, True]),
+    ("P & Q", [True, False, False, False]),
+    ("P | Q", [True, True, True, False]),
+    ("P -> Q", [True, False, True, True]),
+    ("P <-> Q", [True, False, False, True]),
+]
 
 
-@todo
-def test_implies_is_false_only_for_true_then_false():
-    pass
+@pytest.mark.parametrize("text, expected", CONNECTIVE_TABLES)
+def test_evaluate_follows_the_truth_table_of_each_connective(text, expected):
+    formula = parse(text)
+    assignments = [
+        {"P": True, "Q": True},
+        {"P": True, "Q": False},
+        {"P": False, "Q": True},
+        {"P": False, "Q": False},
+    ]
+    assert [evaluate(formula, assignment) for assignment in assignments] == expected
 
 
-@todo
+def test_evaluate_a_nested_formula():
+    formula = parse("(P -> Q) & ~R")
+    assert evaluate(formula, {"P": False, "Q": False, "R": False}) is True
+    assert evaluate(formula, {"P": True, "Q": False, "R": False}) is False
+    assert evaluate(formula, {"P": True, "Q": True, "R": True}) is False
+
+
+def test_evaluate_ignores_atoms_the_formula_does_not_use():
+    assert evaluate(parse("P"), {"P": True, "Z": False}) is True
+
+
 def test_evaluate_raises_key_error_for_a_missing_atom():
-    pass
+    with pytest.raises(KeyError):
+        evaluate(parse("P & Q"), {"P": True})
 
 
-@todo
-def test_get_subformulas_smallest_first_whole_formula_last_no_duplicates():
-    pass
+def test_get_subformulas_smallest_first_whole_formula_last():
+    parts = get_subformulas(parse("(P -> Q) & ~R"))
+    assert [format_formula(part) for part in parts] == [
+        "P", "Q", "R", "P → Q", "¬R", "(P → Q) ∧ ¬R",
+    ]
+
+
+def test_get_subformulas_has_no_duplicates():
+    parts = get_subformulas(parse("(P & Q) | (P & Q)"))
+    assert [format_formula(part) for part in parts] == ["P", "Q", "P ∧ Q", "P ∧ Q ∨ P ∧ Q"]
+
+
+def test_get_subformulas_of_an_atom_is_just_the_atom():
+    assert get_subformulas(parse("P")) == [parse("P")]

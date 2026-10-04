@@ -1,68 +1,164 @@
 import pytest
 
-todo = pytest.mark.skip(reason="not written yet")
+from engine import And, Atom, Iff, Implies, Not, Or, ParseError, format_formula, parse, tokenize
+
+P = Atom("P")
+Q = Atom("Q")
+R = Atom("R")
 
 
-@todo
+# ------------------------------------------------------------------ parsing
+
+
 def test_single_atom():
-    """parse("P") is Atom("P")."""
+    assert parse("P") == P
 
 
-@todo
-def test_aliases():
-    """~ ! for ¬, & ^ for ∧, | for ∨, -> => for →, <-> <=> for ↔."""
+def test_atom_names_may_be_words():
+    assert parse("Butler_Lied2") == Atom("Butler_Lied2")
 
 
-@todo
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("¬P", Not(P)),
+        ("~P", Not(P)),
+        ("!P", Not(P)),
+        ("P ∧ Q", And(P, Q)),
+        ("P & Q", And(P, Q)),
+        ("P ^ Q", And(P, Q)),
+        ("P ∨ Q", Or(P, Q)),
+        ("P | Q", Or(P, Q)),
+        ("P → Q", Implies(P, Q)),
+        ("P -> Q", Implies(P, Q)),
+        ("P => Q", Implies(P, Q)),
+        ("P ↔ Q", Iff(P, Q)),
+        ("P <-> Q", Iff(P, Q)),
+        ("P <=> Q", Iff(P, Q)),
+    ],
+)
+def test_aliases(text, expected):
+    assert parse(text) == expected
+
+
 def test_precedence():
     """¬ binds tighter than ∧, ∧ than ∨, ∨ than →, → than ↔."""
+    assert parse("~P & Q") == And(Not(P), Q)
+    assert parse("P | Q & R") == Or(P, And(Q, R))
+    assert parse("P & Q | R") == Or(And(P, Q), R)
+    assert parse("P -> Q | R") == Implies(P, Or(Q, R))
+    assert parse("P <-> Q -> R") == Iff(P, Implies(Q, R))
 
 
-@todo
 def test_implies_groups_to_the_right():
-    """P -> Q -> R is P -> (Q -> R)."""
+    assert parse("P -> Q -> R") == Implies(P, Implies(Q, R))
 
 
-@todo
-def test_and_groups_to_the_left():
-    """P & Q & R is (P & Q) & R."""
+def test_and_or_and_iff_group_to_the_left():
+    assert parse("P & Q & R") == And(And(P, Q), R)
+    assert parse("P | Q | R") == Or(Or(P, Q), R)
+    assert parse("P <-> Q <-> R") == Iff(Iff(P, Q), R)
 
 
-@todo
 def test_brackets_override_precedence():
-    pass
+    assert parse("(P | Q) & R") == And(Or(P, Q), R)
+    assert parse("(P -> Q) -> R") == Implies(Implies(P, Q), R)
+    assert parse("~(P & Q)") == Not(And(P, Q))
+    assert parse("((P))") == P
 
 
-@todo
+def test_double_negation():
+    assert parse("~~P") == Not(Not(P))
+
+
 def test_spaces_are_ignored():
-    pass
+    assert parse("  P->Q  ") == parse("P -> Q")
 
 
-@todo
-def test_empty_input_is_rejected():
-    pass
+def test_tokens_record_where_they_start():
+    tokens = tokenize("P -> (Q)")
+    assert [(token.kind, token.text, token.position) for token in tokens] == [
+        ("atom", "P", 0),
+        ("implies", "->", 2),
+        ("(", "(", 5),
+        ("atom", "Q", 6),
+        (")", ")", 7),
+    ]
 
 
-@todo
-def test_unbalanced_brackets_are_rejected_with_the_position():
-    pass
+# ------------------------------------------------------------------- errors
 
 
-@todo
-def test_missing_operand_is_rejected():
-    """As in "P ->"."""
+@pytest.mark.parametrize(
+    "text, position",
+    [
+        ("", 0),          # empty
+        ("   ", 0),       # only spaces
+        ("P ->", 4),      # missing right operand: points just past the end
+        ("& P", 0),       # missing left operand
+        ("P & | Q", 4),   # two connectives in a row
+        ("~", 1),         # ¬ with nothing after it
+        ("(P & Q", 0),    # bracket never closed: points at the bracket
+        ("P & Q)", 5),    # closing bracket with no opening one
+        ("()", 1),        # empty brackets
+        ("P Q", 2),       # two atoms with no connective
+        ("(P Q)", 3),     # the same, inside brackets
+        ("P ~Q", 2),      # ¬ where a two-sided connective is needed
+        ("P # Q", 2),     # a character that is not part of any formula
+        ("P - Q", 2),     # half of ->
+        ("2P", 0),        # atom names cannot start with a digit
+    ],
+)
+def test_malformed_input_is_rejected_with_the_position(text, position):
+    with pytest.raises(ParseError) as error:
+        parse(text)
+    assert error.value.position == position
 
 
-@todo
-def test_unknown_character_is_rejected():
-    """As in "P # Q"."""
+def test_error_message_names_the_bad_character():
+    with pytest.raises(ParseError, match="'#' cannot be used in a formula"):
+        parse("P # Q")
 
 
-@todo
-def test_format_uses_display_symbols_and_only_the_brackets_needed():
-    pass
+# --------------------------------------------------------------- formatting
 
 
-@todo
-def test_parse_undoes_format():
-    """parse(format_formula(f)) == f."""
+def test_format_uses_display_symbols():
+    assert format_formula(parse("~P & Q | R -> P <-> Q")) == "¬P ∧ Q ∨ R → P ↔ Q"
+
+
+@pytest.mark.parametrize(
+    "formula, text",
+    [
+        (And(Or(P, Q), R), "(P ∨ Q) ∧ R"),
+        (Or(And(P, Q), R), "P ∧ Q ∨ R"),
+        (Not(And(P, Q)), "¬(P ∧ Q)"),
+        (Not(Not(P)), "¬¬P"),
+        (Implies(P, Implies(Q, R)), "P → Q → R"),
+        (Implies(Implies(P, Q), R), "(P → Q) → R"),
+        (And(And(P, Q), R), "P ∧ Q ∧ R"),
+        (And(P, And(Q, R)), "P ∧ (Q ∧ R)"),
+        (Iff(P, Iff(Q, R)), "P ↔ (Q ↔ R)"),
+    ],
+)
+def test_format_writes_only_the_brackets_needed(formula, text):
+    assert format_formula(formula) == text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "P",
+        "~~P",
+        "~(P & Q) | R",
+        "(P -> Q) -> R",
+        "P -> Q -> R",
+        "P & (Q & R)",
+        "(P <-> Q) & ~(R | P)",
+        "P <-> (Q <-> R)",
+        "(P -> Q) & (Q -> R) -> (P -> R)",
+    ],
+)
+def test_parse_undoes_format(text):
+    formula = parse(text)
+    assert parse(format_formula(formula)) == formula
