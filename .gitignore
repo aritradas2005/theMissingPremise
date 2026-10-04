@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.claude/
+.vscode/
+.DS_Store
+Thumbs.db

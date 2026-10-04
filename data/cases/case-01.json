@@ -1,0 +1,43 @@
+{
+  "id": "case-01",
+  "title": "The Quiet Dog",
+  "difficulty": 1,
+  "briefing": "A necklace is gone from the study at Harrow House. The window latch is broken, and everyone assumes a burglar came in from the garden. You are not so sure.",
+  "atoms": {
+    "W": "The thief came in through the window",
+    "G": "The thief crossed the garden",
+    "B": "The dog barked",
+    "M": "There is mud on the study carpet"
+  },
+  "statements": [
+    {
+      "speaker": "Gardener",
+      "text": "Anyone who came in through that window had to cross the garden.",
+      "formula": "W -> G"
+    },
+    {
+      "speaker": "Housekeeper",
+      "text": "If anyone crosses the garden at night, the dog barks.",
+      "formula": "G -> B"
+    }
+  ],
+  "clues": [
+    {
+      "id": "neighbour",
+      "location": "Next door",
+      "text": "The neighbour was awake all night and heard no barking.",
+      "formula": "~B"
+    },
+    {
+      "id": "mud",
+      "location": "Study",
+      "text": "There is mud on the study carpet.",
+      "formula": "M"
+    }
+  ],
+  "conclusion": {
+    "text": "The thief did not come in through the window.",
+    "formula": "~W"
+  },
+  "rules": ["modus_tollens", "hypothetical_syllogism"]
+}
