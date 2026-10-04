@@ -82,7 +82,7 @@ flowchart LR
 
 ## 6. Key UI screenshots
 
-**TODO** (Game and UI owner): two screenshots saved in `docs/screenshots/`, each with a one-line caption.
+**TODO** (Game and UI owner): choose two screenshots and give each a one-line caption. Five are already saved in `docs/screenshots/` (`title-screen`, `case-cabinet`, `case-screen`, `case-closed`, `custom-case`); they are 800 pixels wide, so retake them at full size if they look soft in print.
 
 1. An input screen, e.g. the custom case screen with premises typed in.
 2. A step-by-step output screen, e.g. the deduction board mid-proof or a truth table with counterexample rows marked.
@@ -113,7 +113,7 @@ This table must match the GitHub commit history.
 
 ## 9. Conclusion and references
 
-**Achieved.** **TODO** once the game is complete: one or two sentences on what works.
+**Achieved.** A playable detective game with five cases, in which every step of the player's proof is checked by a rule checker and the missing premise is found by truth table; a custom case screen that gives a verdict, truth table and resolution proof for any typed argument; and a truth table lab for any formula. All automated tests pass.
 
 **Limitation.** The game covers propositional logic only, and truth tables are capped at 8 atoms (256 rows) because the method is exponential in the number of atoms.
 

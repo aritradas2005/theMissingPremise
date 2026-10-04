@@ -4,7 +4,7 @@ A detective game where every case is an argument in propositional logic. Witness
 
 ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application), Unit I: Logic & Proof Techniques.
 
-> Status: in progress. The logic core (parser, evaluator, truth table, validity) and the inference module (rule checker, CNF, resolution, missing premise) are written and tested (151 passing tests). The game screens and state are in progress.
+> Status: in progress. The logic core (parser, evaluator, truth table, validity), the inference module (rule checker, CNF, resolution, missing premise) and the game logic (case validation, game state, hints, scoring, five cases) are written and tested. The screens in this repository are still placeholders; the finished screens have not been pushed yet.
 
 ## Proof techniques covered
 
@@ -40,6 +40,8 @@ python -m streamlit run app.py
 
 The game opens in your browser at http://localhost:8501. The first time, Streamlit may ask for an email address; press Enter to skip.
 
+After pulling new code, stop the server with Ctrl+C and start it again, so that it loads the changed files.
+
 ## Run the tests
 
 ```bash
@@ -72,7 +74,11 @@ engine/               the mathematics; no screen code
   cnf.py                conjunctive normal form, step by step
   resolution.py         automatic proof by resolution
   missing_premise.py    consistency, missing premise, finding the liar
-game/                 case files, the state of a case in play, scoring
+game/                 the game rules; no screen code
+  case_loader.py        reading and checking case files, building a custom case
+  game_state.py         the proof so far, clues, steps, proof by contradiction
+  hints.py              which clue to look at, which rule to try
+  scoring.py            points, stars and rank
 ui/                   one file per screen, plus shared pieces
 data/cases/           one JSON file per case, listed in index.json
 tests/                one test file per module
