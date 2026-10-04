@@ -20,9 +20,9 @@ ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application),
 
 | Roll no. | Name | Module |
 | --- | --- | --- |
-|  |  | Logic core: parser, evaluator, truth table, validity |
+| 256109007 | Aritra Das | Logic core: parser, evaluator, truth table, validity |
 | 256109015 | Prathmesh Khare | Inference: rule checker, CNF, resolution, missing premise |
-|  |  | Game and UI: screens, deduction board, scoring, cases |
+| 256109003 | Ganesh Chavan | Game and UI: screens, deduction board, scoring, cases |
 
 ## Set up
 
