@@ -6,6 +6,8 @@ and which witness has to be lying when the statements cannot all be true.
 from dataclasses import dataclass
 
 from engine.formula import Formula
+from engine.truth_table import build_truth_table
+from engine.validity import check_argument
 
 
 def is_consistent(formulas: list[Formula]) -> bool:
@@ -13,7 +15,10 @@ def is_consistent(formulas: list[Formula]) -> bool:
     Returns True when some assignment makes all the formulas true.
     An empty list is consistent.
     """
-    raise NotImplementedError("is_consistent")
+    if not formulas:
+        return True
+    table = build_truth_table(formulas)
+    return any(all(row.values) for row in table.rows)
 
 
 @dataclass
@@ -33,7 +38,16 @@ def try_candidates(
     The missing premise is a candidate with closes_gap and consistent both True:
     a candidate that only closes the gap by contradicting the other premises proves nothing.
     """
-    raise NotImplementedError("try_candidates")
+    results = []
+    for idx, candidate in enumerate(candidates):
+        augmented = premises + [candidate]
+        arg_result = check_argument(augmented, conclusion)
+        closes_gap = arg_result.valid
+        consistent = is_consistent(augmented)
+        results.append(
+            CandidateResult(index=idx, closes_gap=closes_gap, consistent=consistent)
+        )
+    return results
 
 
 def find_liars(statements: list[Formula]) -> list[int]:
@@ -42,4 +56,13 @@ def find_liars(statements: list[Formula]) -> list[int]:
     whose removal alone leaves the rest consistent.
     Returns an empty list if the statements are already consistent.
     """
-    raise NotImplementedError("find_liars")
+    if is_consistent(statements):
+        return []
+
+    liars = []
+    for i in range(len(statements)):
+        subset = statements[:i] + statements[i + 1:]
+        if is_consistent(subset):
+            liars.append(i)
+    return liars
+

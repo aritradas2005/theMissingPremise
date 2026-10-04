@@ -1,43 +1,65 @@
 import pytest
 
-todo = pytest.mark.skip(reason="not written yet")
+from engine import are_equivalent, parse, to_clauses, to_cnf
 
 
-@todo
 def test_implication_is_eliminated():
     """P → Q becomes ¬P ∨ Q."""
+    conv = to_cnf(parse("P -> Q"))
+    assert conv.result == parse("~P | Q")
 
 
-@todo
 def test_biconditional_is_eliminated():
     """P ↔ Q becomes (¬P ∨ Q) ∧ (¬Q ∨ P)."""
+    conv = to_cnf(parse("P <-> Q"))
+    assert conv.result == parse("(~P | Q) & (~Q | P)")
 
 
-@todo
 def test_de_morgan():
     """¬(P ∧ Q) becomes ¬P ∨ ¬Q."""
+    conv1 = to_cnf(parse("~(P & Q)"))
+    assert conv1.result == parse("~P | ~Q")
+
+    conv2 = to_cnf(parse("~(P | Q)"))
+    assert conv2.result == parse("~P & ~Q")
 
 
-@todo
 def test_double_negation():
     """¬¬P becomes P."""
+    conv = to_cnf(parse("~~P"))
+    assert conv.result == parse("P")
 
 
-@todo
 def test_or_distributes_over_and():
     """P ∨ (Q ∧ R) becomes (P ∨ Q) ∧ (P ∨ R)."""
+    conv = to_cnf(parse("P | (Q & R)"))
+    assert conv.result == parse("(P | Q) & (P | R)")
 
 
-@todo
 def test_result_is_equivalent_to_the_input():
-    pass
+    cases = [
+        "P -> Q",
+        "P <-> Q",
+        "~(P & (Q | ~R))",
+        "(P | Q) -> (R & S)",
+        "~~(A & B)",
+        "(A & B) | (C & D)",
+    ]
+    for text in cases:
+        f = parse(text)
+        conv = to_cnf(f)
+        assert are_equivalent(f, conv.result)
 
 
-@todo
 def test_a_formula_already_in_cnf_has_no_steps():
-    pass
+    f = parse("(P | ~Q) & (R | S)")
+    conv = to_cnf(f)
+    assert len(conv.steps) == 0
+    assert conv.result == f
 
 
-@todo
 def test_to_clauses_drops_clauses_with_an_atom_and_its_negation():
-    pass
+    f = parse("(P | ~P) & (Q | ~R)")
+    clauses = to_clauses(f)
+    assert len(clauses) == 1
+    assert clauses[0] == frozenset({"Q", "¬R"})
