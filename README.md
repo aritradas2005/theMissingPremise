@@ -4,7 +4,7 @@ A detective game where every case is an argument in propositional logic. Witness
 
 ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application), Unit I: Logic & Proof Techniques.
 
-> Status: in progress. The logic core (parser, evaluator, truth table, validity) is written and tested. The inference module and the game screens are still stubs with agreed function signatures.
+> Status: in progress. The logic core (parser, evaluator, truth table, validity) and the inference module (rule checker, CNF, resolution, missing premise) are written and tested (151 passing tests). The game screens and state are in progress.
 
 ## Proof techniques covered
 
@@ -21,7 +21,7 @@ ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application),
 | Roll no. | Name | Module |
 | --- | --- | --- |
 |  |  | Logic core: parser, evaluator, truth table, validity |
-|  |  | Inference: rule checker, CNF, resolution, missing premise |
+| 256109015 | Prathmesh Khare | Inference: rule checker, CNF, resolution, missing premise |
 |  |  | Game and UI: screens, deduction board, scoring, cases |
 
 ## Set up

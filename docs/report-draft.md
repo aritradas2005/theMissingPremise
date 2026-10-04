@@ -18,7 +18,7 @@ Draft of the 2-page report. Parts marked **TODO** need a teammate, a screenshot 
 | Roll no. | Name | Role | Contribution |
 | --- | --- | --- | --- |
 | **TODO** | **TODO** | Logic core | **TODO** % |
-| **TODO** | **TODO** | Inference | **TODO** % |
+| 256109015 | Prathmesh Khare | Inference | **TODO** % |
 | **TODO** | **TODO** | Game and UI | **TODO** % |
 
 Percentages must total 100%.
@@ -106,7 +106,7 @@ Automated tests: `python -m pytest`. The rows below are from the logic core and 
 | Member | Built | Files and functions |
 | --- | --- | --- |
 | **TODO** name (Logic core) | Formula tree, parser with positioned error messages, formatter, evaluator, truth table builder, validity checks, their tests; repository setup and base plan | `engine/formula.py`; `engine/parser.py`: `tokenize`, `parse`, `format_formula`; `engine/evaluator.py`: `get_atoms`, `evaluate`, `get_subformulas`; `engine/truth_table.py`: `build_truth_table`; `engine/validity.py`: `classify`, `are_equivalent`, `check_argument`; `tests/test_parser.py`, `test_evaluator.py`, `test_truth_table.py`, `test_validity.py`, `test_cases.py` |
-| **TODO** name (Inference) | **TODO** | `engine/rules.py`, `engine/cnf.py`, `engine/resolution.py`, `engine/missing_premise.py` and their tests |
+| Prathmesh Khare (Inference) | Rules of inference step checker (9 rules), CNF step-by-step converter and clause generator, automated proof by resolution refutation, missing premise search, liar detection, and their unit tests | `engine/rules.py`: `check_step`; `engine/cnf.py`: `to_cnf`, `to_clauses`; `engine/resolution.py`: `prove_by_resolution`; `engine/missing_premise.py`: `is_consistent`, `try_candidates`, `find_liars`; `tests/test_rules.py`, `test_cnf.py`, `test_resolution.py`, `test_missing_premise.py` |
 | **TODO** name (Game and UI) | **TODO** | `game/`, `ui/`, `data/cases/` and their tests |
 
 This table must match the GitHub commit history.
