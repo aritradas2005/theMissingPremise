@@ -4,7 +4,7 @@ A detective game where every case is an argument in propositional logic. Witness
 
 ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application), Unit I: Logic & Proof Techniques.
 
-> Status: base plan. The screens, the case format and the function signatures are in place; the logic is not written yet.
+> Status: in progress. The logic core (parser, evaluator, truth table, validity) is written and tested. The inference module and the game screens are still stubs with agreed function signatures.
 
 ## Proof techniques covered
 
