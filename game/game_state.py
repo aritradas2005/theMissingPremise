@@ -11,7 +11,9 @@ from engine import Formula, StepResult
 class ProofLine:
     id: int             # line number, starting at 1
     formula: Formula
-    justification: str  # e.g. "Statement (Gardener)", "Clue (neighbour)" or "Modus Tollens 2, 3"
+    # e.g. "Statement (Gardener)", "Clue (neighbour)", "Modus Tollens 2, 3"
+    # or "Assumption (for contradiction)"
+    justification: str
 
 
 @dataclass
@@ -21,7 +23,10 @@ class GameState:
     collected_clues: list[str]  # ids of the clues added to the proof
     mistakes: int = 0           # rejected steps
     hints_used: int = 0
-    solved: bool = False        # the conclusion is on the board
+    # False: direct proof, solved when the conclusion is on the board.
+    # True: proof by contradiction, solved when the board holds some formula and its negation.
+    by_contradiction: bool = False
+    solved: bool = False
 
 
 def create_game(case: dict) -> GameState:
@@ -32,6 +37,18 @@ def create_game(case: dict) -> GameState:
 def collect_clue(state: GameState, clue_id: str) -> None:
     """Adds a clue to the proof as a new premise line. Collecting it twice does nothing."""
     raise NotImplementedError("collect_clue")
+
+
+def assume_opposite(state: GameState) -> None:
+    """
+    Switches the case to proof by contradiction: adds the negation of the conclusion
+    as a new line justified as "Assumption (for contradiction)".
+
+    This is sound because if the premises together with ¬C lead to a contradiction,
+    no row makes the premises true and C false, so the premises entail C.
+    Calling it a second time does nothing.
+    """
+    raise NotImplementedError("assume_opposite")
 
 
 def attempt_step(

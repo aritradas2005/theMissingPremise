@@ -39,5 +39,10 @@ def test_simplification_gives_either_side():
 
 
 @todo
+def test_contraposition_swaps_and_negates_both_sides():
+    """P → Q gives ¬Q → ¬P, and does not give Q → P."""
+
+
+@todo
 def test_unknown_rule_id_raises_value_error():
     pass

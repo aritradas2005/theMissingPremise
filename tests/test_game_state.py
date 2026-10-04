@@ -34,6 +34,16 @@ def test_the_game_is_solved_when_the_conclusion_is_on_the_board():
 
 
 @todo
+def test_assume_opposite_adds_the_negated_conclusion_once():
+    pass
+
+
+@todo
+def test_by_contradiction_is_solved_by_a_formula_and_its_negation():
+    """Having the conclusion on the board is not needed in this mode."""
+
+
+@todo
 def test_validate_case_reports_each_kind_of_problem():
     """An unparseable formula, an undeclared atom, a repeated clue id and an unknown rule."""
 

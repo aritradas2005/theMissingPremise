@@ -44,8 +44,15 @@ def show_case(case_id: str) -> None:
     st.subheader("To prove")
     show_entry("Conclusion", case["conclusion"]["text"], case["conclusion"]["formula"])
 
-    placeholder("Deduction board", "Pick lines and a rule of inference to add a new line to the proof.")
-    placeholder("Truth table", "Shows the rows where every premise is true and the conclusion is still false.")
+    placeholder(
+        "Deduction board",
+        "Direct proof: pick lines and a rule of inference to add a new line. "
+        "Proof by contradiction: assume the opposite of the conclusion and derive a formula and its negation.",
+    )
+    placeholder(
+        "Truth table",
+        "Counterexample rows: every premise is true and the conclusion is still false.",
+    )
 
 
 def show_entry(label: str, text: str, formula: str) -> None:

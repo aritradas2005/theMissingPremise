@@ -25,6 +25,7 @@ RULES = [
     Rule("simplification", "Simplification", ("P ∧ Q",), "P"),
     Rule("conjunction", "Conjunction", ("P", "Q"), "P ∧ Q"),
     Rule("resolution", "Resolution", ("P ∨ Q", "¬P ∨ R"), "Q ∨ R"),
+    Rule("contraposition", "Contraposition", ("P → Q",), "¬Q → ¬P"),
 ]
 
 

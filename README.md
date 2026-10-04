@@ -4,7 +4,17 @@ A detective game where every case is an argument in propositional logic. Witness
 
 ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application), Unit I: Logic & Proof Techniques.
 
-> Status: skeleton. The screens, the case format and the function signatures are in place; the logic is not written yet.
+> Status: base plan. The screens, the case format and the function signatures are in place; the logic is not written yet.
+
+## Proof techniques covered
+
+| Technique | Where |
+| --- | --- |
+| Direct proof | Deduction board: premises to conclusion, one rule of inference per step |
+| Proof by contradiction | Deduction board, "assume the opposite"; also the automatic resolution proof |
+| Proof by contraposition | The Contraposition rule: from P → Q conclude ¬Q → ¬P |
+| Proof by exhaustion | Truth table: every assignment is checked |
+| Disproof by counterexample | Truth table rows where the premises are true and the conclusion is false |
 
 ## Team
 
