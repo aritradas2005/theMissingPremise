@@ -1,0 +1,49 @@
+{
+  "id": "case-04",
+  "title": "The Forged Will",
+  "difficulty": 3,
+  "briefing": "A will was forged on Friday, by the nephew or by the family lawyer. You only have two rules to work with here, and they are not enough for a direct proof. Assume the opposite of what you want to show and look for a contradiction.",
+  "atoms": {
+    "N": "The nephew forged the will",
+    "L": "The lawyer forged the will",
+    "T": "The nephew was in town on Friday",
+    "I": "The will is written in blue ink"
+  },
+  "statements": [
+    {
+      "speaker": "Handwriting expert",
+      "text": "Only two people could copy that signature. The nephew forged it, or the lawyer did.",
+      "formula": "N | L",
+      "avatar": "🔍"
+    },
+    {
+      "speaker": "Solicitor's clerk",
+      "text": "The will never left our office. If the nephew forged it, he was in town on Friday.",
+      "formula": "N -> T",
+      "avatar": "📜"
+    }
+  ],
+  "clues": [
+    {
+      "id": "passport",
+      "location": "Nephew's desk",
+      "text": "His passport is stamped: he was abroad all week, so he was not in town on Friday.",
+      "formula": "~T"
+    },
+    {
+      "id": "ink",
+      "location": "The will",
+      "text": "The will is written in blue ink.",
+      "formula": "I"
+    }
+  ],
+  "conclusion": {
+    "text": "The lawyer forged the will.",
+    "formula": "L"
+  },
+  "tip": "With these two rules a direct proof is impossible. Press \"Assume the opposite\", then derive a formula and its negation.",
+  "rules": [
+    "disjunctive_syllogism",
+    "modus_ponens"
+  ]
+}

@@ -21,7 +21,8 @@ def test_case_has_every_field_the_game_reads(entry):
     assert isinstance(case["atoms"], dict)
     assert len(case["statements"]) > 0
     for statement in case["statements"]:
-        assert set(statement) == {"speaker", "text", "formula"}
+        # speaker, text and formula are required; avatar is optional
+        assert {"speaker", "text", "formula"} <= set(statement) <= {"speaker", "text", "formula", "avatar"}
     for clue in case["clues"]:
         assert set(clue) == {"id", "location", "text", "formula"}
     assert set(case["conclusion"]) == {"text", "formula"}

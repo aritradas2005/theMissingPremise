@@ -1,3 +1,7 @@
 [
-  { "id": "case-01", "title": "The Quiet Dog", "difficulty": 1 }
+  { "id": "case-01", "title": "The Quiet Dog", "difficulty": 1 },
+  { "id": "case-02", "title": "The Locked Study", "difficulty": 2 },
+  { "id": "case-03", "title": "The Midnight Train", "difficulty": 2 },
+  { "id": "case-04", "title": "The Forged Will", "difficulty": 3 },
+  { "id": "case-05", "title": "The Silent Alarm", "difficulty": 3 }
 ]

@@ -1,0 +1,49 @@
+{
+  "id": "case-02",
+  "title": "The Locked Study",
+  "difficulty": 2,
+  "briefing": "The study was locked from the outside and only two people ever handled the key. The cook swears she never left her kitchen. Decide who took it.",
+  "atoms": {
+    "B": "The butler took the key",
+    "C": "The cook took the key",
+    "L": "The cook left the kitchen that evening",
+    "S": "The key has a fresh scratch"
+  },
+  "statements": [
+    {
+      "speaker": "Housekeeper",
+      "text": "Only the butler and the cook can reach the key hook. One of them took it.",
+      "formula": "B | C",
+      "avatar": "🧹"
+    },
+    {
+      "speaker": "Butler",
+      "text": "The hook is in the hall. If the cook took the key, she left the kitchen.",
+      "formula": "C -> L",
+      "avatar": "🤵"
+    }
+  ],
+  "clues": [
+    {
+      "id": "scratch",
+      "location": "Key hook",
+      "text": "The key has a fresh scratch along its shaft.",
+      "formula": "S"
+    },
+    {
+      "id": "maid",
+      "location": "Kitchen",
+      "text": "The kitchen maid was with the cook all evening: she never left the kitchen.",
+      "formula": "~L"
+    }
+  ],
+  "conclusion": {
+    "text": "The butler took the key.",
+    "formula": "B"
+  },
+  "rules": [
+    "modus_ponens",
+    "modus_tollens",
+    "disjunctive_syllogism"
+  ]
+}

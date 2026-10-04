@@ -13,12 +13,14 @@
     {
       "speaker": "Gardener",
       "text": "Anyone who came in through that window had to cross the garden.",
-      "formula": "W -> G"
+      "formula": "W -> G",
+      "avatar": "🌱"
     },
     {
       "speaker": "Housekeeper",
       "text": "If anyone crosses the garden at night, the dog barks.",
-      "formula": "G -> B"
+      "formula": "G -> B",
+      "avatar": "🧹"
     }
   ],
   "clues": [
@@ -39,5 +41,9 @@
     "text": "The thief did not come in through the window.",
     "formula": "~W"
   },
-  "rules": ["modus_tollens", "hypothetical_syllogism"]
+  "tip": "This case needs one rule, Modus Tollens: from \"if P then Q\" and \"not Q\" you may conclude \"not P\". Use it twice.",
+  "rules": [
+    "modus_tollens",
+    "hypothetical_syllogism"
+  ]
 }

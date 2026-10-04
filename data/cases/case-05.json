@@ -1,0 +1,58 @@
+{
+  "id": "case-05",
+  "title": "The Silent Alarm",
+  "difficulty": 3,
+  "briefing": "The vault was emptied without a sound. Two witnesses each give you an either-or, and neither settles anything alone. Combine them.",
+  "atoms": {
+    "A": "The alarm was switched off",
+    "D": "The vault door was forced",
+    "I": "It was an inside job",
+    "W": "The guard has a new watch",
+    "F": "There are fingerprints on the alarm panel"
+  },
+  "statements": [
+    {
+      "speaker": "Engineer",
+      "text": "Nobody empties that vault quietly unless the alarm was switched off or the door was forced.",
+      "formula": "A | D",
+      "avatar": "🔧"
+    },
+    {
+      "speaker": "Manager",
+      "text": "Only staff know the code. Either the alarm was not switched off, or it was an inside job.",
+      "formula": "~A | I",
+      "avatar": "💼"
+    }
+  ],
+  "clues": [
+    {
+      "id": "watch",
+      "location": "Guard room",
+      "text": "The guard is wearing an expensive new watch.",
+      "formula": "W"
+    },
+    {
+      "id": "door",
+      "location": "Vault",
+      "text": "The door and its lock are untouched: the vault door was not forced.",
+      "formula": "~D"
+    },
+    {
+      "id": "prints",
+      "location": "Alarm panel",
+      "text": "There are fingerprints on the alarm panel.",
+      "formula": "F"
+    }
+  ],
+  "conclusion": {
+    "text": "It was an inside job.",
+    "formula": "I"
+  },
+  "tip": "Resolution joins two either-or statements: from \"P or Q\" and \"not P, or R\" you may conclude \"Q or R\".",
+  "rules": [
+    "resolution",
+    "disjunctive_syllogism",
+    "modus_ponens",
+    "contraposition"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "case-03",
+  "title": "The Midnight Train",
+  "difficulty": 2,
+  "briefing": "A suspect claims he was nowhere near the Grand Hotel on the night of the robbery. The railway timetable says otherwise, if you can show he was on the train.",
+  "atoms": {
+    "T": "The suspect took the midnight train",
+    "A": "The suspect arrived in town before one o'clock",
+    "H": "The suspect was seen at the Grand Hotel",
+    "R": "The suspect carried a red case",
+    "G": "The night clerk wears glasses"
+  },
+  "statements": [
+    {
+      "speaker": "Station master",
+      "text": "The midnight train is never late. If he took it, he arrived in town before one.",
+      "formula": "T -> A",
+      "avatar": "🚂"
+    },
+    {
+      "speaker": "Night clerk",
+      "text": "Nobody gets past my desk unseen. If he arrived before one, he was seen at the hotel.",
+      "formula": "A -> H",
+      "avatar": "🔔"
+    }
+  ],
+  "clues": [
+    {
+      "id": "glasses",
+      "location": "Hotel desk",
+      "text": "The night clerk wears thick glasses.",
+      "formula": "G"
+    },
+    {
+      "id": "porter",
+      "location": "Platform",
+      "text": "The porter remembers him: he boarded the midnight train, carrying a red case.",
+      "formula": "T & R"
+    }
+  ],
+  "conclusion": {
+    "text": "The suspect was seen at the Grand Hotel.",
+    "formula": "H"
+  },
+  "rules": [
+    "simplification",
+    "hypothetical_syllogism",
+    "modus_ponens"
+  ]
+}
