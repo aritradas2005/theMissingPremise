@@ -143,7 +143,7 @@ tests/              304 automated tests, one file per module
 
 DOCUMENTS
 screenshots/        UI screenshots
-report/             the two-page technical summary report (PDF) and its source
+report/             the two-page technical summary report (PDF)
 tools/make_art.py   the script that draws the backgrounds and the detective
 ```
 
