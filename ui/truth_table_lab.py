@@ -103,4 +103,4 @@ if formula_text.strip():
     if formula is not None and other_text.strip():
         show_comparison(formula, other_text)
 else:
-    st.info(f"{SYNTAX_HELP} Try (P -> Q) & P -> Q.")
+    st.info(f"{SYNTAX_HELP} Try `(P -> Q) & P -> Q`.")

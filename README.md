@@ -2,6 +2,8 @@
 
 A detective game where every case is an argument in propositional logic. Witness statements and evidence are the premises, the accusation is the conclusion, and the player has to find the premise that is missing and then prove the conclusion step by step with rules of inference.
 
+**Play it online: https://themissingpremise.streamlit.app/** (if it has been idle it takes about a minute to wake up).
+
 ![Title screen](screenshots/title-screen.jpg)
 
 ## Project details
@@ -9,6 +11,7 @@ A detective game where every case is an argument in propositional logic. Witness
 | | |
 | --- | --- |
 | Course | Discrete Mathematics (7MA206), S.Y. B.Tech. (IT), ISE-2 |
+| Live game | https://themissingpremise.streamlit.app/ |
 | Team ID | TeeenTitans |
 | Track | A: Gamified Application |
 | Unit and topic | Unit I, Logic & Proof Techniques: propositional logic, truth tables, rules of inference, resolution |

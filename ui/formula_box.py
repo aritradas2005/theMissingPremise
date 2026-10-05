@@ -7,7 +7,9 @@ import streamlit as st
 
 from engine import Formula, ParseError, parse
 
-SYNTAX_HELP = "Type ~ for ¬, & for ∧, | for ∨, -> for →, <-> for ↔. Brackets are allowed."
+# The keys to type are written between backquotes. Without them Streamlit
+# would turn "->" into an arrow, and the help would read "→ for →".
+SYNTAX_HELP = "Type `~` for ¬, `&` for ∧, `|` for ∨, `->` for →, `<->` for ↔. Brackets are allowed."
 
 CONNECTIVE_KEYS = ["¬", "∧", "∨", "→", "↔", "(", ")"]
 
