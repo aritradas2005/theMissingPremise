@@ -1,0 +1,13 @@
+[
+  { "formula": "P | ~P",                      "kind": "tautology",     "true_rows": 2, "rows": 2 },
+  { "formula": "P & ~P",                      "kind": "contradiction", "true_rows": 0, "rows": 2 },
+  { "formula": "P <-> ~P",                    "kind": "contradiction", "true_rows": 0, "rows": 2 },
+  { "formula": "P -> Q",                      "kind": "contingency",   "true_rows": 3, "rows": 4 },
+  { "formula": "P & Q",                       "kind": "contingency",   "true_rows": 1, "rows": 4 },
+  { "formula": "(P -> Q) & P -> Q",           "kind": "tautology",     "true_rows": 4, "rows": 4 },
+  { "formula": "~(P & Q) <-> (~P | ~Q)",      "kind": "tautology",     "true_rows": 4, "rows": 4 },
+  { "formula": "(P -> Q) <-> (~Q -> ~P)",     "kind": "tautology",     "true_rows": 4, "rows": 4 },
+  { "formula": "(P -> Q) <-> (Q -> P)",       "kind": "contingency",   "true_rows": 2, "rows": 4 },
+  { "formula": "(P -> Q) & (Q -> R) -> (P -> R)", "kind": "tautology", "true_rows": 8, "rows": 8 },
+  { "formula": "(P | Q) & ~R",                "kind": "contingency",   "true_rows": 3, "rows": 8 }
+]

@@ -1,0 +1,103 @@
+[
+  {
+    "name": "Modus ponens",
+    "premises": ["P -> Q", "P"],
+    "conclusion": "Q",
+    "valid": true
+  },
+  {
+    "name": "Modus tollens",
+    "premises": ["P -> Q", "~Q"],
+    "conclusion": "~P",
+    "valid": true
+  },
+  {
+    "name": "Hypothetical syllogism",
+    "premises": ["P -> Q", "Q -> R"],
+    "conclusion": "P -> R",
+    "valid": true
+  },
+  {
+    "name": "Disjunctive syllogism",
+    "premises": ["P | Q", "~P"],
+    "conclusion": "Q",
+    "valid": true
+  },
+  {
+    "name": "Resolution",
+    "premises": ["P | Q", "~P | R"],
+    "conclusion": "Q | R",
+    "valid": true
+  },
+  {
+    "name": "Contraposition",
+    "premises": ["P -> Q"],
+    "conclusion": "~Q -> ~P",
+    "valid": true
+  },
+  {
+    "name": "Constructive dilemma",
+    "premises": ["P -> Q", "R -> S", "P | R"],
+    "conclusion": "Q | S",
+    "valid": true
+  },
+  {
+    "name": "Biconditional used left to right",
+    "premises": ["P <-> Q", "P"],
+    "conclusion": "Q",
+    "valid": true
+  },
+  {
+    "name": "Affirming the consequent (a fallacy)",
+    "premises": ["P -> Q", "Q"],
+    "conclusion": "P",
+    "valid": false,
+    "counterexample": {"P": false, "Q": true}
+  },
+  {
+    "name": "Denying the antecedent (a fallacy)",
+    "premises": ["P -> Q", "~P"],
+    "conclusion": "~Q",
+    "valid": false,
+    "counterexample": {"P": false, "Q": true}
+  },
+  {
+    "name": "The converse does not follow",
+    "premises": ["P -> Q"],
+    "conclusion": "Q -> P",
+    "valid": false,
+    "counterexample": {"P": false, "Q": true}
+  },
+  {
+    "name": "Case 1 without its evidence: a premise is missing",
+    "premises": ["W -> G", "G -> B"],
+    "conclusion": "~W",
+    "valid": false,
+    "counterexample": {"B": true, "G": true, "W": true}
+  },
+  {
+    "name": "Case 1 with its evidence",
+    "premises": ["W -> G", "G -> B", "~B"],
+    "conclusion": "~W",
+    "valid": true
+  },
+  {
+    "name": "Edge case: no premises, and the conclusion is a tautology",
+    "premises": [],
+    "conclusion": "P | ~P",
+    "valid": true
+  },
+  {
+    "name": "Edge case: no premises, and the conclusion is not a tautology",
+    "premises": [],
+    "conclusion": "P",
+    "valid": false,
+    "counterexample": {"P": false}
+  },
+  {
+    "name": "Edge case: contradictory premises prove anything",
+    "premises": ["P", "~P"],
+    "conclusion": "Q",
+    "valid": true
+  }
+]

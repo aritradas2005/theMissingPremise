@@ -1,0 +1,10 @@
+[
+  { "input": "",        "message": "Type a formula first.",                                              "position": 0 },
+  { "input": "(P & Q",  "message": "This bracket is never closed.",                                      "position": 0 },
+  { "input": "P & Q)",  "message": "This closing bracket has no matching opening bracket.",              "position": 5 },
+  { "input": "P ->",    "message": "The formula stops too early: an atom, ¬ or ( is expected here.",     "position": 4 },
+  { "input": "& P",     "message": "An atom, ¬ or ( is expected here, not '&'.",                         "position": 0 },
+  { "input": "P Q",     "message": "One of ∧ ∨ → ↔ is expected here, not 'Q'.",                          "position": 2 },
+  { "input": "P # Q",   "message": "'#' cannot be used in a formula.",                                   "position": 2 },
+  { "input": "()",      "message": "An atom, ¬ or ( is expected here, not ')'.",                         "position": 1 }
+]
