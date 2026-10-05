@@ -36,6 +36,13 @@ ALIASES = {
 # ∧ and ∨ group to the left; → groups to the right, so P → Q → R means P → (Q → R).
 PRECEDENCE = {Iff: 1, Implies: 2, Or: 3, And: 4, Not: 5}
 
+# The largest formula parse() accepts. The parser, and every function that walks
+# a formula afterwards, calls itself once for each level of the formula. Python
+# allows only about a thousand such calls inside one another, so an enormous
+# formula is refused with a message here instead of crashing later.
+MAX_TOKENS = 200   # atoms, connectives and brackets in one formula
+MAX_NESTING = 40   # brackets or negations inside one another
+
 # The token kind for each connective.
 KIND = {Not: "not", And: "and", Or: "or", Implies: "implies", Iff: "iff"}
 
@@ -126,6 +133,7 @@ class _Parser:
         self.tokens = tokens
         self.index = 0                    # the next token to read
         self.end_position = end_position  # where to point if the formula stops too early
+        self.depth = 0                    # brackets and negations currently open
 
     def peek(self) -> Token | None:
         """Returns the next token without consuming it, or None at the end."""
@@ -142,6 +150,16 @@ class _Parser:
         token = self.tokens[self.index]
         self.index += 1
         return token
+
+    def go_deeper(self, token: Token) -> None:
+        """Counts one more open bracket or negation, and refuses to go past the limit."""
+        self.depth += 1
+        if self.depth > MAX_NESTING:
+            raise ParseError(
+                f"This formula is nested too deeply: more than {MAX_NESTING} brackets "
+                "or negations inside one another.",
+                token.position,
+            )
 
     def parse_iff(self) -> Formula:
         left = self.parse_implies()
@@ -186,7 +204,10 @@ class _Parser:
 
         if token.kind == "not":
             self.take()
-            return Not(self.parse_unary())
+            self.go_deeper(token)
+            operand = self.parse_unary()
+            self.depth -= 1
+            return Not(operand)
 
         if token.kind == "atom":
             self.take()
@@ -194,6 +215,7 @@ class _Parser:
 
         if token.kind == "(":
             self.take()
+            self.go_deeper(token)
             inside = self.parse_iff()
             closing = self.peek()
             if closing is None:
@@ -204,6 +226,7 @@ class _Parser:
                     closing.position,
                 )
             self.take()
+            self.depth -= 1
             return inside
 
         raise ParseError(
@@ -215,11 +238,17 @@ def parse(text: str) -> Formula:
     """
     Reads a formula such as "(P -> Q) & ~R".
 
-    Raises ParseError on empty input, unbalanced brackets, a missing operand or leftover text.
+    Raises ParseError on empty input, unbalanced brackets, a missing operand, leftover
+    text, or a formula longer or more deeply nested than MAX_TOKENS and MAX_NESTING allow.
     """
     tokens = tokenize(text)
     if not tokens:
         raise ParseError("Type a formula first.", 0)
+    if len(tokens) > MAX_TOKENS:
+        raise ParseError(
+            f"This formula is too long: it has {len(tokens)} symbols and the limit is {MAX_TOKENS}.",
+            tokens[MAX_TOKENS].position,
+        )
 
     parser = _Parser(tokens, end_position=len(text))
     formula = parser.parse_iff()
@@ -255,26 +284,34 @@ def format_formula(formula: Formula) -> str:
             inner = f"({inner})"
         return SYMBOLS[Not] + inner
 
-    connective = type(formula)
     left = format_formula(formula.left)
     right = format_formula(formula.right)
-
-    # A side needs brackets when the parser would otherwise group it differently:
-    # when it binds more loosely than this connective, or equally loosely on the
-    # side this connective does not group towards.
-    groups_to_the_right = connective is Implies
-    if _binds_looser(formula.left, connective, or_equal=groups_to_the_right):
+    if needs_brackets(formula.left, formula, side="left"):
         left = f"({left})"
-    if _binds_looser(formula.right, connective, or_equal=not groups_to_the_right):
+    if needs_brackets(formula.right, formula, side="right"):
         right = f"({right})"
 
-    return f"{left} {SYMBOLS[connective]} {right}"
+    symbol = SYMBOLS[type(formula)]
+    return f"{left} {symbol} {right}"
 
 
-def _binds_looser(part: Formula, connective: type, or_equal: bool) -> bool:
-    """Is this part of a formula held together more loosely than the connective around it?"""
-    if isinstance(part, Atom):
-        return False
-    if or_equal:
-        return PRECEDENCE[type(part)] <= PRECEDENCE[connective]
-    return PRECEDENCE[type(part)] < PRECEDENCE[connective]
+def needs_brackets(part: Formula, whole: Formula, side: str) -> bool:
+    """
+    Would the parser read this part of a formula differently without brackets?
+    part is the left or right side of whole; side says which ("left" or "right").
+    """
+    if isinstance(part, Atom) or isinstance(part, Not):
+        return False                      # P and ¬P never need brackets
+
+    part_strength = PRECEDENCE[type(part)]
+    whole_strength = PRECEDENCE[type(whole)]
+    if part_strength > whole_strength:
+        return False                      # P ∧ Q ∨ R already means (P ∧ Q) ∨ R
+    if part_strength < whole_strength:
+        return True                       # (P ∨ Q) ∧ R would change without them
+
+    # The same connective twice, as in P → Q → R. Brackets are needed only on
+    # the side the connective does not group towards: → groups to the right,
+    # the others to the left.
+    groups_to = "right" if isinstance(whole, Implies) else "left"
+    return side != groups_to

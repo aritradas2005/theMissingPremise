@@ -1,7 +1,26 @@
+"""
+Automatic proof by resolution refutation.
+
+The idea: to prove that a conclusion follows from the premises, suppose it
+does not. Write the premises and the NEGATED conclusion as clauses, then keep
+combining clauses. If the empty clause appears, the supposition was
+impossible, so the conclusion does follow.
+
+Combining two clauses is called resolving them: when one holds a literal and
+the other holds its opposite, those two cancel and everything else is kept.
+    P ∨ Q   and   ¬P ∨ R   give   Q ∨ R
+    P       and   ¬P       give   the empty clause, a contradiction
+"""
+
 from dataclasses import dataclass
 
-from engine.cnf import Clause, to_clauses, to_cnf
+from engine.cnf import Clause, is_always_true, to_clauses, to_cnf
 from engine.formula import Formula, Not
+
+# Every new clause is compared with every earlier one, so the work grows with
+# the square of the number of clauses. A search that reaches this many is
+# stopped with an error instead of running for minutes.
+MAX_RESOLUTION_LINES = 500
 
 
 @dataclass
@@ -19,6 +38,45 @@ class ResolutionProof:
     lines: list[ResolutionLine]  # the clauses in the order they were added
 
 
+def opposite_literal(literal: str) -> str:
+    """The opposite of "P" is "¬P", and the opposite of "¬P" is "P"."""
+    if literal.startswith("¬"):
+        return literal[1:]
+    return "¬" + literal
+
+
+def resolve(first: Clause, second: Clause) -> list[tuple[Clause, str]]:
+    """
+    Every clause that can be made by cancelling a literal of the first clause
+    against its opposite in the second. Each comes with the atom that was cancelled.
+    """
+    results = []
+    for literal in sorted(first):
+        opposite = opposite_literal(literal)
+        if opposite in second:
+            merged = (first - {literal}) | (second - {opposite})
+            if not is_always_true(merged):
+                atom = literal.lstrip("¬")
+                results.append((merged, atom))
+    return results
+
+
+def add_starting_clauses(lines: list[ResolutionLine], formulas: list[Formula], source: str) -> None:
+    """Converts formulas to clauses and adds each new clause as a numbered line."""
+    for formula in formulas:
+        for clause in to_clauses(to_cnf(formula).result):
+            if not is_known(lines, clause):
+                lines.append(ResolutionLine(len(lines) + 1, clause, source))
+
+
+def is_known(lines: list[ResolutionLine], clause: Clause) -> bool:
+    """True when this clause is already one of the lines."""
+    for line in lines:
+        if line.clause == clause:
+            return True
+    return False
+
+
 def prove_by_resolution(premises: list[Formula], conclusion: Formula) -> ResolutionProof:
     """
     Tries to prove P1, ..., Pn ∴ C:
@@ -26,83 +84,40 @@ def prove_by_resolution(premises: list[Formula], conclusion: Formula) -> Resolut
       2. resolve pairs of clauses until the empty clause appears (proved)
          or no new clause can be made (not proved)
 
-    The answer must agree with check_argument() in validity.py.
+    The answer agrees with check_argument() in validity.py.
+
+    Raises ValueError if the search reaches MAX_RESOLUTION_LINES clauses, or if a
+    formula is too large to convert to clauses.
     """
-    lines: list[ResolutionLine] = []
-    known_clauses: dict[Clause, int] = {}
-    next_id = 1
+    empty_clause = frozenset()
 
-    # 1. Convert premises to clauses
-    for prem in premises:
-        cnf_f = to_cnf(prem).result
-        for c in to_clauses(cnf_f):
-            if c not in known_clauses:
-                line = ResolutionLine(id=next_id, clause=c, source="premise")
-                lines.append(line)
-                known_clauses[c] = next_id
-                next_id += 1
-
-    # 2. Convert negated conclusion to clauses
-    neg_c = Not(conclusion)
-    cnf_neg = to_cnf(neg_c).result
-    for c in to_clauses(cnf_neg):
-        if c not in known_clauses:
-            line = ResolutionLine(id=next_id, clause=c, source="negated conclusion")
-            lines.append(line)
-            known_clauses[c] = next_id
-            next_id += 1
-
-    # Check if empty clause already present
-    empty = frozenset()
-    if empty in known_clauses:
+    lines = []
+    add_starting_clauses(lines, premises, "premise")
+    add_starting_clauses(lines, [Not(conclusion)], "negated conclusion")
+    if is_known(lines, empty_clause):
         return ResolutionProof(proved=True, lines=lines)
 
-    # 3. Resolution loop
-    i = 0
-    while i < len(lines):
-        line1 = lines[i]
-        c1 = line1.clause
-
-        for j in range(i):
-            line2 = lines[j]
-            c2 = line2.clause
-
-            # Find literals in c1 that can resolve with c2
-            for lit1 in c1:
-                if lit1.startswith("¬"):
-                    atom = lit1[1:]
-                    comp = atom
-                else:
-                    atom = lit1
-                    comp = f"¬{atom}"
-
-                if comp in c2:
-                    resolvent = (c1 - {lit1}) | (c2 - {comp})
-
-                    # Discard tautological resolvent containing X and ¬X
-                    has_tautology = any(
-                        f"¬{lit}" in resolvent
-                        for lit in resolvent
-                        if not lit.startswith("¬")
+    # Take the lines in order and resolve each with every line before it.
+    # New clauses are added to the end of the list, so they get their turn too.
+    seen = {line.clause for line in lines}   # a set, for a quick "have we met this clause?"
+    position = 0
+    while position < len(lines):
+        newer = lines[position]
+        for older in lines[:position]:
+            for clause, atom in resolve(newer.clause, older.clause):
+                if clause in seen:
+                    continue
+                if len(lines) >= MAX_RESOLUTION_LINES:
+                    raise ValueError(
+                        f"The search was stopped after {MAX_RESOLUTION_LINES} clauses: "
+                        "this argument is too large for a readable resolution proof."
                     )
-                    if has_tautology:
-                        continue
-
-                    if resolvent not in known_clauses:
-                        line = ResolutionLine(
-                            id=next_id,
-                            clause=resolvent,
-                            source="resolvent",
-                            parents=(line2.id, line1.id),
-                            on=atom,
-                        )
-                        lines.append(line)
-                        known_clauses[resolvent] = next_id
-                        next_id += 1
-
-                        if resolvent == empty:
-                            return ResolutionProof(proved=True, lines=lines)
-        i += 1
+                seen.add(clause)
+                lines.append(
+                    ResolutionLine(len(lines) + 1, clause, "resolvent", (older.id, newer.id), atom)
+                )
+                if clause == empty_clause:
+                    return ResolutionProof(proved=True, lines=lines)
+        position += 1
 
     return ResolutionProof(proved=False, lines=lines)
-

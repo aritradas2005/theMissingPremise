@@ -1,6 +1,19 @@
 import pytest
 
-from engine import And, Atom, Iff, Implies, Not, Or, ParseError, format_formula, parse, tokenize
+from engine import (
+    MAX_NESTING,
+    MAX_TOKENS,
+    And,
+    Atom,
+    Iff,
+    Implies,
+    Not,
+    Or,
+    ParseError,
+    format_formula,
+    parse,
+    tokenize,
+)
 
 P = Atom("P")
 Q = Atom("Q")
@@ -161,4 +174,52 @@ def test_format_writes_only_the_brackets_needed(formula, text):
 )
 def test_parse_undoes_format(text):
     formula = parse(text)
+    assert parse(format_formula(formula)) == formula
+
+
+# ------------------------------------------------------- very large formulas
+
+
+def test_nesting_up_to_the_limit_is_accepted():
+    assert parse("(" * MAX_NESTING + "P" + ")" * MAX_NESTING) == P
+    assert parse("~" * MAX_NESTING + "P") == parse("~" * MAX_NESTING + "P")
+
+
+def test_nesting_past_the_limit_is_refused_at_the_bracket_that_goes_too_deep():
+    with pytest.raises(ParseError, match="nested too deeply") as error:
+        parse("(" * (MAX_NESTING + 1) + "P" + ")" * (MAX_NESTING + 1))
+    assert error.value.position == MAX_NESTING
+
+
+def test_brackets_and_negations_count_towards_the_same_limit():
+    half = MAX_NESTING // 2
+    parse("(" * half + "~" * half + "P" + ")" * half)                 # exactly at the limit
+    with pytest.raises(ParseError, match="nested too deeply"):
+        parse("(" * half + "~" * (half + 1) + "P" + ")" * half)
+
+
+def test_closed_brackets_do_not_count_as_nesting():
+    """Sixty bracketed atoms side by side are only one level deep."""
+    parse(" & ".join(["(P)"] * 40))
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "(" * 200 + "P" + ")" * 200,        # used to crash with a RecursionError
+        "~" * 3000 + "P",                   # so did this
+        " & ".join(["P"] * 2000),
+        "(" * 100_000,
+    ],
+    # Short names, because pytest would otherwise use the whole formula as the test's name.
+    ids=["200 brackets", "3000 negations", "2000 atoms", "100000 brackets"],
+)
+def test_an_enormous_formula_is_refused_with_a_message_not_a_crash(text):
+    with pytest.raises(ParseError, match="too long"):
+        parse(text)
+
+
+def test_the_longest_accepted_formula_can_be_formatted_and_parsed_again():
+    atoms = (MAX_TOKENS + 1) // 2           # n atoms joined by n - 1 connectives
+    formula = parse(" -> ".join(["P"] * atoms))
     assert parse(format_formula(formula)) == formula

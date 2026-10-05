@@ -1,5 +1,3 @@
-import pytest
-
 from engine import find_liars, is_consistent, parse, try_candidates
 
 

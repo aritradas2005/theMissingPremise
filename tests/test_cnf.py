@@ -1,6 +1,6 @@
 import pytest
 
-from engine import are_equivalent, parse, to_clauses, to_cnf
+from engine import MAX_CNF_STEPS, are_equivalent, parse, to_clauses, to_cnf
 
 
 def test_implication_is_eliminated():
@@ -63,3 +63,17 @@ def test_to_clauses_drops_clauses_with_an_atom_and_its_negation():
     clauses = to_clauses(f)
     assert len(clauses) == 1
     assert clauses[0] == frozenset({"Q", "¬R"})
+
+
+def test_a_formula_that_would_take_too_many_steps_is_refused():
+    """Five ↔ inside one another used to take over a minute to convert."""
+    formula = parse("A <-> (B <-> (C <-> (D <-> (E <-> F))))")
+    with pytest.raises(ValueError, match="too large to convert to CNF"):
+        to_cnf(formula)
+
+
+def test_four_nested_biconditionals_are_still_converted():
+    formula = parse("A <-> (B <-> (C <-> (D <-> E)))")
+    conv = to_cnf(formula)
+    assert 0 < len(conv.steps) <= MAX_CNF_STEPS
+    assert are_equivalent(formula, conv.result)

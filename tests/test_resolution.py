@@ -1,6 +1,6 @@
 import pytest
 
-from engine import check_argument, parse, prove_by_resolution
+from engine import MAX_RESOLUTION_LINES, check_argument, parse, prove_by_resolution
 
 
 def test_proves_modus_ponens():
@@ -58,3 +58,21 @@ def test_agrees_with_check_argument_on_a_batch_of_arguments():
         assert (
             res_proof.proved == arg_result.valid
         ), f"Disagreement on {prem_texts} ∴ {conc_text}: resolution={res_proof.proved}, truth_table={arg_result.valid}"
+
+
+def test_a_search_that_grows_too_large_is_stopped():
+    """Eight premises over eight atoms make thousands of clauses before the search can finish."""
+    premises = [
+        parse(text)
+        for text in [
+            "A | B | C", "D | E | F", "~A | D | G", "~B | E | H",
+            "~C | F | G", "~D | ~E | H", "A | ~F | ~H", "B | ~G | H",
+        ]
+    ]
+    with pytest.raises(ValueError, match=f"stopped after {MAX_RESOLUTION_LINES} clauses"):
+        prove_by_resolution(premises, parse("A & D"))
+
+
+def test_a_formula_too_large_for_cnf_is_refused_by_the_prover_too():
+    with pytest.raises(ValueError, match="too large to convert to CNF"):
+        prove_by_resolution([parse("A <-> (B <-> (C <-> (D <-> (E <-> F))))")], parse("A"))

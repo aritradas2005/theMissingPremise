@@ -1,6 +1,19 @@
 """
-Conjunctive normal form: rewriting a formula as an AND of ORs of literals,
-recording each rewrite so it can be shown step by step.
+Conjunctive normal form (CNF): rewriting a formula as an AND of ORs of literals,
+for example (¬P ∨ Q) ∧ (P ∨ R). Every rewrite is recorded so it can be shown
+step by step.
+
+The conversion makes four kinds of change, always in this order:
+    1. remove ↔      A ↔ B      becomes  (A → B) ∧ (B → A)
+    2. remove →      A → B      becomes  ¬A ∨ B
+    3. push ¬ in     ¬¬A        becomes  A
+                     ¬(A ∧ B)   becomes  ¬A ∨ ¬B        (De Morgan)
+                     ¬(A ∨ B)   becomes  ¬A ∧ ¬B        (De Morgan)
+    4. distribute    A ∨ (B ∧ C) becomes (A ∨ B) ∧ (A ∨ C)
+
+Each function below makes one kind of change and returns the new formula.
+It returns a formula equal to the one it was given when there was nothing to
+change, which is how to_cnf() knows when to stop.
 """
 
 from dataclasses import dataclass
@@ -11,6 +24,11 @@ from engine.formula import And, Atom, Formula, Iff, Implies, Not, Or
 # A frozenset is a set that cannot change, which lets clauses be stored inside other sets.
 # The empty clause frozenset() stands for a contradiction.
 Clause = frozenset[str]
+
+# Distributing ∨ over ∧ can double the size of a formula at every step, so a
+# formula with several ↔ inside one another can need thousands of steps and
+# minutes of time. The conversion stops with an error at this many steps.
+MAX_CNF_STEPS = 1000
 
 
 @dataclass
@@ -25,178 +43,206 @@ class CnfConversion:
     result: Formula
 
 
-def _eliminate_iff(f: Formula) -> tuple[Formula, bool]:
-    if isinstance(f, Atom):
-        return f, False
-    if isinstance(f, Not):
-        op, changed = _eliminate_iff(f.operand)
-        return Not(op), changed
-    if isinstance(f, Iff):
-        left, _ = _eliminate_iff(f.left)
-        right, _ = _eliminate_iff(f.right)
-        return And(Implies(left, right), Implies(right, left)), True
-    left, ch1 = _eliminate_iff(f.left)
-    right, ch2 = _eliminate_iff(f.right)
-    return type(f)(left, right), ch1 or ch2
+def same_connective(formula: Formula, left: Formula, right: Formula) -> Formula:
+    """A formula with the same connective as the one given, but with new sides."""
+    connective = type(formula)
+    return connective(left, right)
 
 
-def _eliminate_implies(f: Formula) -> tuple[Formula, bool]:
-    if isinstance(f, Atom):
-        return f, False
-    if isinstance(f, Not):
-        op, changed = _eliminate_implies(f.operand)
-        return Not(op), changed
-    if isinstance(f, Implies):
-        left, _ = _eliminate_implies(f.left)
-        right, _ = _eliminate_implies(f.right)
-        return Or(Not(left), right), True
-    left, ch1 = _eliminate_implies(f.left)
-    right, ch2 = _eliminate_implies(f.right)
-    return type(f)(left, right), ch1 or ch2
+# ------------------------------------------------------ the kinds of change
 
 
-def _apply_double_negation(f: Formula) -> tuple[Formula, bool]:
-    if isinstance(f, Atom):
-        return f, False
-    if isinstance(f, Not):
-        if isinstance(f.operand, Not):
-            res, _ = _apply_double_negation(f.operand.operand)
-            return res, True
-        op, changed = _apply_double_negation(f.operand)
-        return Not(op), changed
-    left, ch1 = _apply_double_negation(f.left)
-    right, ch2 = _apply_double_negation(f.right)
-    return type(f)(left, right), ch1 or ch2
+def remove_iff(formula: Formula) -> Formula:
+    """Replaces every A ↔ B by (A → B) ∧ (B → A)."""
+    if isinstance(formula, Atom):
+        return formula
+    if isinstance(formula, Not):
+        return Not(remove_iff(formula.operand))
+
+    left = remove_iff(formula.left)
+    right = remove_iff(formula.right)
+    if isinstance(formula, Iff):
+        return And(Implies(left, right), Implies(right, left))
+    return same_connective(formula, left, right)
 
 
-def _apply_de_morgan(f: Formula) -> tuple[Formula, bool]:
-    if isinstance(f, Atom):
-        return f, False
-    if isinstance(f, Not):
-        if isinstance(f.operand, And):
-            a, b = f.operand.left, f.operand.right
-            return Or(Not(a), Not(b)), True
-        if isinstance(f.operand, Or):
-            a, b = f.operand.left, f.operand.right
-            return And(Not(a), Not(b)), True
-        op, changed = _apply_de_morgan(f.operand)
-        return Not(op), changed
-    left, ch1 = _apply_de_morgan(f.left)
-    right, ch2 = _apply_de_morgan(f.right)
-    return type(f)(left, right), ch1 or ch2
+def remove_implies(formula: Formula) -> Formula:
+    """Replaces every A → B by ¬A ∨ B."""
+    if isinstance(formula, Atom):
+        return formula
+    if isinstance(formula, Not):
+        return Not(remove_implies(formula.operand))
+
+    left = remove_implies(formula.left)
+    right = remove_implies(formula.right)
+    if isinstance(formula, Implies):
+        return Or(Not(left), right)
+    return same_connective(formula, left, right)
 
 
-def _distribute_once(f: Formula) -> tuple[Formula, bool]:
-    if isinstance(f, Atom):
-        return f, False
-    if isinstance(f, Not):
-        op, ch = _distribute_once(f.operand)
-        return Not(op), ch
-    if isinstance(f, Or):
-        if isinstance(f.right, And):
-            a = f.left
-            b = f.right.left
-            c = f.right.right
-            return And(Or(a, b), Or(a, c)), True
-        if isinstance(f.left, And):
-            a = f.left.left
-            b = f.left.right
-            c = f.right
-            return And(Or(a, c), Or(b, c)), True
-        left, ch1 = _distribute_once(f.left)
-        if ch1:
-            return Or(left, f.right), True
-        right, ch2 = _distribute_once(f.right)
-        if ch2:
-            return Or(f.left, right), True
-        return f, False
-    if isinstance(f, And):
-        left, ch1 = _distribute_once(f.left)
-        if ch1:
-            return And(left, f.right), True
-        right, ch2 = _distribute_once(f.right)
-        if ch2:
-            return And(f.left, right), True
-        return f, False
-    return f, False
+def remove_double_negations(formula: Formula) -> Formula:
+    """Replaces every ¬¬A by A."""
+    if isinstance(formula, Atom):
+        return formula
+    if isinstance(formula, Not):
+        inside = formula.operand
+        if isinstance(inside, Not):
+            return remove_double_negations(inside.operand)
+        return Not(remove_double_negations(inside))
+
+    left = remove_double_negations(formula.left)
+    right = remove_double_negations(formula.right)
+    return same_connective(formula, left, right)
+
+
+def apply_de_morgan(formula: Formula) -> Formula:
+    """Replaces ¬(A ∧ B) by ¬A ∨ ¬B, and ¬(A ∨ B) by ¬A ∧ ¬B."""
+    if isinstance(formula, Atom):
+        return formula
+    if isinstance(formula, Not):
+        inside = formula.operand
+        if isinstance(inside, And):
+            return Or(Not(inside.left), Not(inside.right))
+        if isinstance(inside, Or):
+            return And(Not(inside.left), Not(inside.right))
+        return Not(apply_de_morgan(inside))
+
+    left = apply_de_morgan(formula.left)
+    right = apply_de_morgan(formula.right)
+    return same_connective(formula, left, right)
+
+
+def distribute_once(formula: Formula) -> Formula:
+    """
+    Replaces A ∨ (B ∧ C) by (A ∨ B) ∧ (A ∨ C) at the first place it fits.
+    Only one place is changed per call, so each call is one visible step.
+
+    When nothing fits, the very same formula is handed back. to_cnf() checks
+    for that with "is", which asks "is this the same object?" and is instant.
+    """
+    if isinstance(formula, Atom):
+        return formula
+    if isinstance(formula, Not):
+        inside = distribute_once(formula.operand)
+        if inside is formula.operand:
+            return formula
+        return Not(inside)
+
+    left = formula.left
+    right = formula.right
+
+    if isinstance(formula, Or) and isinstance(right, And):
+        return And(Or(left, right.left), Or(left, right.right))
+    if isinstance(formula, Or) and isinstance(left, And):
+        return And(Or(left.left, right), Or(left.right, right))
+
+    # Nothing to do at this level: look inside the left side, then the right.
+    new_left = distribute_once(left)
+    if new_left is not left:
+        return same_connective(formula, new_left, right)
+    new_right = distribute_once(right)
+    if new_right is not right:
+        return same_connective(formula, left, new_right)
+    return formula
+
+
+# ------------------------------------------------------------ the conversion
+
+
+def record(steps: list[CnfStep], rule: str, formula: Formula) -> None:
+    """Adds one step to the list, and gives up once the conversion has taken too many."""
+    if len(steps) >= MAX_CNF_STEPS:
+        raise ValueError(
+            f"This formula is too large to convert to CNF: it needs more than {MAX_CNF_STEPS} "
+            "rewriting steps. Formulas with several ↔ inside one another grow very quickly."
+        )
+    steps.append(CnfStep(rule, formula))
 
 
 def to_cnf(formula: Formula) -> CnfConversion:
     """
-    Converts in this order: eliminate ↔, eliminate →, push ¬ inwards
-    (De Morgan, double negation), distribute ∨ over ∧.
+    Converts a formula to CNF and returns every step taken and the result.
     Steps that change nothing are left out.
+
+    Raises ValueError if the conversion needs more than MAX_CNF_STEPS steps.
     """
-    steps: list[CnfStep] = []
+    steps = []
     current = formula
 
-    # 1. Eliminate ↔
-    f, changed = _eliminate_iff(current)
-    if changed:
-        current = f
-        steps.append(CnfStep("Eliminate ↔", current))
+    # 1. Remove ↔.
+    changed = remove_iff(current)
+    if changed != current:
+        current = changed
+        record(steps, "Eliminate ↔", current)
 
-    # 2. Eliminate →
-    f, changed = _eliminate_implies(current)
-    if changed:
-        current = f
-        steps.append(CnfStep("Eliminate →", current))
+    # 2. Remove →.
+    changed = remove_implies(current)
+    if changed != current:
+        current = changed
+        record(steps, "Eliminate →", current)
 
-    # 3. Push ¬ inwards (De Morgan, double negation)
+    # 3. Push ¬ inwards. Double negations are cleared first; when there are
+    #    none, De Morgan is applied. Repeat until neither changes anything.
     while True:
-        f, changed = _apply_double_negation(current)
-        if changed:
-            current = f
-            steps.append(CnfStep("Double negation", current))
-            continue
-        f, changed = _apply_de_morgan(current)
-        if changed:
-            current = f
-            steps.append(CnfStep("De Morgan", current))
-            continue
-        break
-
-    # 4. Distribute ∨ over ∧
-    while True:
-        f, changed = _distribute_once(current)
-        if changed:
-            current = f
-            steps.append(CnfStep("Distribute ∨ over ∧", current))
-        else:
+        changed = remove_double_negations(current)
+        rule = "Double negation"
+        if changed == current:
+            changed = apply_de_morgan(current)
+            rule = "De Morgan"
+        if changed == current:
             break
+        current = changed
+        record(steps, rule, current)
+
+    # 4. Distribute ∨ over ∧, one place at a time, until no place is left.
+    while True:
+        changed = distribute_once(current)
+        if changed is current:
+            break
+        current = changed
+        record(steps, "Distribute ∨ over ∧", current)
 
     return CnfConversion(steps=steps, result=current)
+
+
+# ------------------------------------------------------------------ clauses
+
+
+def split_on_and(formula: Formula) -> list[Formula]:
+    """The pieces of a formula that are joined by ∧: for (A ∨ B) ∧ C these are A ∨ B and C."""
+    if isinstance(formula, And):
+        return split_on_and(formula.left) + split_on_and(formula.right)
+    return [formula]
+
+
+def literals_of(formula: Formula) -> list[str]:
+    """The literals joined by ∨ in one piece: for A ∨ ¬B these are "A" and "¬B"."""
+    if isinstance(formula, Or):
+        return literals_of(formula.left) + literals_of(formula.right)
+    if isinstance(formula, Atom):
+        return [formula.name]
+    if isinstance(formula, Not) and isinstance(formula.operand, Atom):
+        return ["¬" + formula.operand.name]
+    raise ValueError(f"Formula is not in CNF: {formula}")
+
+
+def is_always_true(clause: Clause) -> bool:
+    """True when the clause holds both an atom and its negation, such as P ∨ ¬P."""
+    for literal in clause:
+        if "¬" + literal in clause:
+            return True
+    return False
 
 
 def to_clauses(cnf_formula: Formula) -> list[Clause]:
     """
     Reads the clauses off a formula that is already in CNF.
-    Clauses containing both X and ¬X are always true and are dropped.
+    Clauses containing both X and ¬X are always true and are dropped,
+    and a clause that appears twice is kept once.
     """
-    def get_conjuncts(f: Formula) -> list[Formula]:
-        if isinstance(f, And):
-            return get_conjuncts(f.left) + get_conjuncts(f.right)
-        return [f]
-
-    def get_disjuncts(f: Formula) -> list[str]:
-        if isinstance(f, Or):
-            return get_disjuncts(f.left) + get_disjuncts(f.right)
-        if isinstance(f, Atom):
-            return [f.name]
-        if isinstance(f, Not) and isinstance(f.operand, Atom):
-            return [f"¬{f.operand.name}"]
-        raise ValueError(f"Formula is not in CNF: {f}")
-
-    clauses: list[Clause] = []
-    seen: set[Clause] = set()
-    for conj in get_conjuncts(cnf_formula):
-        lits = get_disjuncts(conj)
-        clause = frozenset(lits)
-        # Drop tautological clauses containing X and ¬X
-        has_tautology = any(
-            f"¬{lit}" in clause for lit in clause if not lit.startswith("¬")
-        )
-        if not has_tautology and clause not in seen:
+    clauses = []
+    for piece in split_on_and(cnf_formula):
+        clause = frozenset(literals_of(piece))
+        if not is_always_true(clause) and clause not in clauses:
             clauses.append(clause)
-            seen.add(clause)
     return clauses

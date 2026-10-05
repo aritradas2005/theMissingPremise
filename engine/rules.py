@@ -1,10 +1,21 @@
 """
-Rules of inference: checking that one step of the player's proof is a correct use of a rule.
+Rules of inference: checking one step of the player's proof.
+
+The player picks a rule, picks one or two lines, and writes a new line.
+check_step() says whether the new line really follows by that rule.
+
+Every rule has its own small function below, named check_<rule>. Each of them
+answers in the same way:
+    - it returns None when the step is correct;
+    - otherwise it returns a sentence saying what is wrong.
+
+In the patterns, P, Q and R stand for any formulas, not only single letters.
 """
 
 from dataclasses import dataclass
 
-from engine.formula import Formula
+from engine.formula import And, Formula, Implies, Not, Or
+from engine.parser import format_formula
 
 
 @dataclass(frozen=True)
@@ -15,7 +26,6 @@ class Rule:
     conclusion: str
 
 
-# The rules the player can use. P, Q and R stand for any formulas, not only single atoms.
 RULES = [
     Rule("modus_ponens", "Modus Ponens", ("P → Q", "P"), "Q"),
     Rule("modus_tollens", "Modus Tollens", ("P → Q", "¬Q"), "¬P"),
@@ -32,7 +42,15 @@ RULES = [
 @dataclass
 class StepResult:
     valid: bool
-    reason: str  # shown to the player, e.g. "Modus Ponens needs an implication and its left side."
+    reason: str  # shown to the player
+
+
+def find_rule(rule_id: str) -> Rule:
+    """Returns the rule with this id. Raises ValueError if there is none."""
+    for rule in RULES:
+        if rule.id == rule_id:
+            return rule
+    raise ValueError(f"Unknown rule id: {rule_id}")
 
 
 def check_step(rule_id: str, premises: list[Formula], conclusion: Formula) -> StepResult:
@@ -45,188 +63,191 @@ def check_step(rule_id: str, premises: list[Formula], conclusion: Formula) -> St
 
     Raises ValueError on an unknown rule_id.
     """
-    rule_map = {r.id: r for r in RULES}
-    if rule_id not in rule_map:
-        raise ValueError(f"Unknown rule id: {rule_id}")
+    rule = find_rule(rule_id)
 
-    rule = rule_map[rule_id]
-    expected_count = len(rule.premises)
-    if len(premises) != expected_count:
-        s = "premise" if expected_count == 1 else "premises"
-        return StepResult(False, f"{rule.name} needs {expected_count} {s}, but got {len(premises)}.")
+    needed = len(rule.premises)
+    if len(premises) != needed:
+        word = "premise" if needed == 1 else "premises"
+        return StepResult(False, f"{rule.name} needs {needed} {word}, but got {len(premises)}.")
 
-    from engine.formula import And, Implies, Not, Or
-    from engine.parser import format_formula
+    check = CHECKERS[rule_id]
+    problem = check(premises, conclusion)
+    if problem is None:
+        return StepResult(True, f"Valid step by {rule.name}.")
+    return StepResult(False, problem)
 
-    if rule_id == "modus_ponens":
-        p1, p2 = premises
-        orders = [(p1, p2), (p2, p1)]
-        has_implication = any(isinstance(imp, Implies) for imp, _ in orders)
-        if not has_implication:
-            return StepResult(False, "Modus Ponens needs an implication (→).")
 
-        for imp, other in orders:
-            if isinstance(imp, Implies):
-                if other == imp.left:
-                    if conclusion == imp.right:
-                        return StepResult(True, f"Valid step by {rule.name}.")
-                    return StepResult(
-                        False,
-                        f"Modus Ponens with this implication gives {format_formula(imp.right)}.",
-                    )
-                if other == imp.right:
-                    return StepResult(
-                        False, "Affirming the consequent: P → Q and Q does not prove P."
-                    )
-                if other == Not(imp.left):
-                    return StepResult(
-                        False, "Denying the antecedent: P → Q and ¬P does not prove ¬Q."
-                    )
-        return StepResult(
-            False,
-            "Modus Ponens needs the left side of the implication as the second premise.",
-        )
+# ------------------------------------------------------------------ helpers
 
-    if rule_id == "modus_tollens":
-        p1, p2 = premises
-        orders = [(p1, p2), (p2, p1)]
-        has_implication = any(isinstance(imp, Implies) for imp, _ in orders)
-        if not has_implication:
-            return StepResult(False, "Modus Tollens needs an implication (→).")
 
-        for imp, other in orders:
-            if isinstance(imp, Implies):
-                expected_neg = Not(imp.right)
-                if other == expected_neg or (isinstance(imp.right, Not) and other == imp.right.operand):
-                    expected_conclusion = Not(imp.left)
-                    if conclusion == expected_conclusion:
-                        return StepResult(True, f"Valid step by {rule.name}.")
-                    return StepResult(
-                        False,
-                        f"Modus Tollens with this implication gives {format_formula(expected_conclusion)}.",
-                    )
-                if other == imp.right:
-                    return StepResult(
-                        False, "Modus Tollens needs the negation of the right side."
-                    )
-                if other == Not(imp.left):
-                    return StepResult(
-                        False, "Denying the antecedent: P → Q and ¬P does not prove ¬Q."
-                    )
-        return StepResult(
-            False,
-            "Modus Tollens needs the negation of the right side of the implication.",
-        )
+def both_orders(premises: list[Formula]) -> list[tuple[Formula, Formula]]:
+    """The two premises as (first, second) and as (second, first), so the order does not matter."""
+    first, second = premises
+    return [(first, second), (second, first)]
 
-    if rule_id == "hypothetical_syllogism":
-        p1, p2 = premises
-        if not (isinstance(p1, Implies) and isinstance(p2, Implies)):
-            return StepResult(False, "Hypothetical Syllogism needs two implications (→).")
 
-        orders = [(p1, p2), (p2, p1)]
-        for imp1, imp2 in orders:
-            if imp1.right == imp2.left:
-                expected = Implies(imp1.left, imp2.right)
-                if conclusion == expected:
-                    return StepResult(True, f"Valid step by {rule.name}.")
-                return StepResult(
-                    False, f"Hypothetical Syllogism gives {format_formula(expected)}."
-                )
-        return StepResult(
-            False,
-            "Hypothetical Syllogism requires the right side of one implication to match the left side of the other.",
-        )
+def are_opposites(one: Formula, other: Formula) -> bool:
+    """True when one formula is the other with ¬ in front, such as Q and ¬Q."""
+    return one == Not(other) or other == Not(one)
 
-    if rule_id == "disjunctive_syllogism":
-        p1, p2 = premises
-        orders = [(p1, p2), (p2, p1)]
-        has_or = any(isinstance(disj, Or) for disj, _ in orders)
-        if not has_or:
-            return StepResult(False, "Disjunctive Syllogism needs a disjunction (∨).")
 
-        for disj, other in orders:
-            if isinstance(disj, Or):
-                # Check if other negates disj.left
-                if other == Not(disj.left) or (isinstance(disj.left, Not) and other == disj.left.operand):
-                    if conclusion == disj.right:
-                        return StepResult(True, f"Valid step by {rule.name}.")
-                    return StepResult(
-                        False, f"Disjunctive Syllogism gives {format_formula(disj.right)}."
-                    )
-                # Check if other negates disj.right
-                if other == Not(disj.right) or (isinstance(disj.right, Not) and other == disj.right.operand):
-                    if conclusion == disj.left:
-                        return StepResult(True, f"Valid step by {rule.name}.")
-                    return StepResult(
-                        False, f"Disjunctive Syllogism gives {format_formula(disj.left)}."
-                    )
-        return StepResult(
-            False,
-            "Disjunctive Syllogism needs the negation of one side of the disjunction.",
-        )
+def has_kind(premises: list[Formula], kind: type) -> bool:
+    """True when at least one of the premises is of this kind, for example an implication."""
+    for premise in premises:
+        if isinstance(premise, kind):
+            return True
+    return False
 
-    if rule_id == "addition":
-        p1 = premises[0]
-        if not isinstance(conclusion, Or):
-            return StepResult(False, "Addition must produce a disjunction (∨).")
-        if conclusion.left == p1 or conclusion.right == p1:
-            return StepResult(True, f"Valid step by {rule.name}.")
-        return StepResult(
-            False, "Addition requires one side of the disjunction to match the premise."
-        )
 
-    if rule_id == "simplification":
-        p1 = premises[0]
-        if not isinstance(p1, And):
-            return StepResult(False, "Simplification needs a conjunction (∧).")
-        if conclusion == p1.left or conclusion == p1.right:
-            return StepResult(True, f"Valid step by {rule.name}.")
-        return StepResult(
-            False, "Simplification must give one of the conjuncts."
-        )
+# ---------------------------------------------------- one function per rule
 
-    if rule_id == "conjunction":
-        p1, p2 = premises
-        if not isinstance(conclusion, And):
-            return StepResult(False, "Conjunction must produce an AND (∧).")
-        if (conclusion.left == p1 and conclusion.right == p2) or (
-            conclusion.left == p2 and conclusion.right == p1
-        ):
-            return StepResult(True, f"Valid step by {rule.name}.")
-        return StepResult(
-            False, "Conjunction must combine the two premises with ∧."
-        )
 
-    if rule_id == "resolution":
-        p1, p2 = premises
-        if not (isinstance(p1, Or) and isinstance(p2, Or)):
-            return StepResult(False, "Resolution needs two disjunctions (∨).")
+def check_modus_ponens(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P → Q, P ⊢ Q"""
+    if not has_kind(premises, Implies):
+        return "Modus Ponens needs an implication (→)."
 
-        for l1, r1 in [(p1.left, p1.right), (p1.right, p1.left)]:
-            for l2, r2 in [(p2.left, p2.right), (p2.right, p2.left)]:
-                if (
-                    l1 == Not(l2)
-                    or l2 == Not(l1)
-                    or (isinstance(l1, Not) and l1.operand == l2)
-                    or (isinstance(l2, Not) and l2.operand == l1)
-                ):
-                    if conclusion in (Or(r1, r2), Or(r2, r1)):
-                        return StepResult(True, f"Valid step by {rule.name}.")
-        return StepResult(
-            False,
-            "Resolution needs an atom and its negation to cancel across two disjunctions.",
-        )
+    for implication, other in both_orders(premises):
+        if not isinstance(implication, Implies):
+            continue
+        if other == implication.left:
+            if conclusion == implication.right:
+                return None
+            return f"Modus Ponens with this implication gives {format_formula(implication.right)}."
+        # Two well-known mistakes get their own message.
+        if other == implication.right:
+            return "Affirming the consequent: P → Q and Q does not prove P."
+        if other == Not(implication.left):
+            return "Denying the antecedent: P → Q and ¬P does not prove ¬Q."
 
-    if rule_id == "contraposition":
-        p1 = premises[0]
-        if not isinstance(p1, Implies):
-            return StepResult(False, "Contraposition needs an implication (→).")
-        expected = Implies(Not(p1.right), Not(p1.left))
-        if conclusion == expected:
-            return StepResult(True, f"Valid step by {rule.name}.")
-        return StepResult(
-            False, "Contraposition swaps and negates both sides: P → Q gives ¬Q → ¬P."
-        )
+    return "Modus Ponens needs the left side of the implication as the second premise."
 
-    return StepResult(False, f"Unrecognized rule {rule_id}.")
 
+def check_modus_tollens(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P → Q, ¬Q ⊢ ¬P"""
+    if not has_kind(premises, Implies):
+        return "Modus Tollens needs an implication (→)."
+
+    for implication, other in both_orders(premises):
+        if not isinstance(implication, Implies):
+            continue
+        if are_opposites(other, implication.right):
+            expected = Not(implication.left)
+            if conclusion == expected:
+                return None
+            return f"Modus Tollens with this implication gives {format_formula(expected)}."
+        if other == implication.right:
+            return "Modus Tollens needs the negation of the right side."
+        if other == Not(implication.left):
+            return "Denying the antecedent: P → Q and ¬P does not prove ¬Q."
+
+    return "Modus Tollens needs the negation of the right side of the implication."
+
+
+def check_hypothetical_syllogism(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P → Q, Q → R ⊢ P → R"""
+    first, second = premises
+    if not (isinstance(first, Implies) and isinstance(second, Implies)):
+        return "Hypothetical Syllogism needs two implications (→)."
+
+    for start, end in both_orders(premises):
+        if start.right == end.left:
+            expected = Implies(start.left, end.right)
+            if conclusion == expected:
+                return None
+            return f"Hypothetical Syllogism gives {format_formula(expected)}."
+
+    return (
+        "Hypothetical Syllogism requires the right side of one implication "
+        "to match the left side of the other."
+    )
+
+
+def check_disjunctive_syllogism(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P ∨ Q, ¬P ⊢ Q   (and also P ∨ Q, ¬Q ⊢ P)"""
+    if not has_kind(premises, Or):
+        return "Disjunctive Syllogism needs a disjunction (∨)."
+
+    for disjunction, other in both_orders(premises):
+        if not isinstance(disjunction, Or):
+            continue
+        if are_opposites(other, disjunction.left):
+            if conclusion == disjunction.right:
+                return None
+            return f"Disjunctive Syllogism gives {format_formula(disjunction.right)}."
+        if are_opposites(other, disjunction.right):
+            if conclusion == disjunction.left:
+                return None
+            return f"Disjunctive Syllogism gives {format_formula(disjunction.left)}."
+
+    return "Disjunctive Syllogism needs the negation of one side of the disjunction."
+
+
+def check_addition(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P ⊢ P ∨ Q, with anything at all as Q"""
+    premise = premises[0]
+    if not isinstance(conclusion, Or):
+        return "Addition must produce a disjunction (∨)."
+    if conclusion.left == premise or conclusion.right == premise:
+        return None
+    return "Addition requires one side of the disjunction to match the premise."
+
+
+def check_simplification(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P ∧ Q ⊢ P   (and also P ∧ Q ⊢ Q)"""
+    premise = premises[0]
+    if not isinstance(premise, And):
+        return "Simplification needs a conjunction (∧)."
+    if conclusion == premise.left or conclusion == premise.right:
+        return None
+    return "Simplification must give one of the conjuncts."
+
+
+def check_conjunction(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P, Q ⊢ P ∧ Q"""
+    first, second = premises
+    if not isinstance(conclusion, And):
+        return "Conjunction must produce an AND (∧)."
+    if conclusion == And(first, second) or conclusion == And(second, first):
+        return None
+    return "Conjunction must combine the two premises with ∧."
+
+
+def check_resolution(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P ∨ Q, ¬P ∨ R ⊢ Q ∨ R: one side of each line cancels, the other two sides stay."""
+    first, second = premises
+    if not (isinstance(first, Or) and isinstance(second, Or)):
+        return "Resolution needs two disjunctions (∨)."
+
+    # Try each side of the first line against each side of the second.
+    for cancelled_1, kept_1 in [(first.left, first.right), (first.right, first.left)]:
+        for cancelled_2, kept_2 in [(second.left, second.right), (second.right, second.left)]:
+            if are_opposites(cancelled_1, cancelled_2):
+                if conclusion == Or(kept_1, kept_2) or conclusion == Or(kept_2, kept_1):
+                    return None
+
+    return "Resolution needs an atom and its negation to cancel across two disjunctions."
+
+
+def check_contraposition(premises: list[Formula], conclusion: Formula) -> str | None:
+    """P → Q ⊢ ¬Q → ¬P"""
+    premise = premises[0]
+    if not isinstance(premise, Implies):
+        return "Contraposition needs an implication (→)."
+    if conclusion == Implies(Not(premise.right), Not(premise.left)):
+        return None
+    return "Contraposition swaps and negates both sides: P → Q gives ¬Q → ¬P."
+
+
+# Which function checks which rule.
+CHECKERS = {
+    "modus_ponens": check_modus_ponens,
+    "modus_tollens": check_modus_tollens,
+    "hypothetical_syllogism": check_hypothetical_syllogism,
+    "disjunctive_syllogism": check_disjunctive_syllogism,
+    "addition": check_addition,
+    "simplification": check_simplification,
+    "conjunction": check_conjunction,
+    "resolution": check_resolution,
+    "contraposition": check_contraposition,
+}
