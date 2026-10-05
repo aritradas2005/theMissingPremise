@@ -3,6 +3,7 @@ Runs each screen with Streamlit's test runner, which executes the page and
 presses its buttons without a browser.
 """
 
+import time
 from pathlib import Path
 
 import pytest
@@ -99,6 +100,25 @@ def test_lab_rejects_more_atoms_than_a_table_can_hold():
     assert "The limit is 8 atoms." in app.error[0].value
 
 
+@pytest.mark.parametrize(
+    "text, message",
+    [
+        ("(" * 200 + "P" + ")" * 200, "This formula is too long"),
+        ("~" * 1000 + "P", "This formula is too long"),
+        ("(" * 60 + "P" + ")" * 60, "nested too deeply"),
+    ],
+    ids=["200 brackets", "1000 negations", "60 brackets"],
+)
+def test_lab_refuses_an_enormous_formula_with_a_message(text, message):
+    """These used to show a raw Python error on the screen."""
+    app = open_screen("ui/truth_table_lab.py")
+
+    app.text_input(key="lab_formula").input(text).run()
+
+    assert not app.exception
+    assert message in app.error[0].value
+
+
 def test_lab_keys_type_into_the_formula_box():
     app = open_screen("ui/truth_table_lab.py")
     app.text_input(key="lab_formula").input("P").run()
@@ -179,6 +199,37 @@ def test_custom_case_edge_cases(premises, conclusion, expected):
     assert not app.exception
     shown = messages(app.success) + messages(app.warning) + messages(app.error)
     assert any(expected in message for message in shown)
+
+
+@pytest.mark.parametrize(
+    "premises, conclusion, reason",
+    [
+        # Five ↔ inside one another: the conversion to CNF used to take over a minute.
+        ("A <-> (B <-> (C <-> (D <-> (E <-> F))))", "A", "too large to convert to CNF"),
+        # Eight premises over eight atoms: the search makes too many clauses.
+        ("A | B | C\nD | E | F\n~A | D | G\n~B | E | H\n~C | F | G\n~D | ~E | H\nA | ~F | ~H\nB | ~G | H",
+         "A & D", "stopped after 500 clauses"),
+    ],
+    ids=["five nested biconditionals", "eight wide premises"],
+)
+def test_custom_case_skips_a_resolution_proof_that_would_be_too_large(premises, conclusion, reason):
+    started = time.time()
+    app = type_custom_case(premises, conclusion)
+
+    assert not app.exception
+    assert time.time() - started < 20
+    # The verdict and the truth table are still there; only the resolution proof is left out.
+    assert any(message.startswith("Invalid.") for message in messages(app.error))
+    assert "mp-table" in page_html(app)
+    note = next(message for message in messages(app.info) if "resolution proof is not shown" in message)
+    assert reason in note
+
+
+def test_custom_case_shortens_a_very_long_cnf_conversion():
+    app = type_custom_case("A <-> (B <-> (C <-> (D <-> E)))", "A")
+
+    assert not app.exception
+    assert any("more steps, ending in" in caption.value for caption in app.caption)
 
 
 def test_custom_case_can_be_played_and_is_dropped_when_the_formulas_change():

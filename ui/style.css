@@ -1,11 +1,23 @@
 /*
   The look of the game. This file holds no logic: it only changes colours,
-  fonts and spacing. It is loaded once by load_style() in ui/components.py.
+  fonts and spacing. It is loaded once by load_style() in ui/look.py.
 
-  Two kinds of things are styled here:
-    1. Our own HTML, built in ui/components.py. Its class names start with "mp-".
-    2. Streamlit's widgets. Containers made with st.container(key="x") get the
-       class "st-key-x", which is how single parts of the screen are picked out.
+  How to read it. Each block has the form
+
+      what to style {
+        property: value;
+      }
+
+  and the "what to style" part is one of two kinds:
+    1. Our own HTML, built in ui/board_pieces.py, ui/tables.py and
+       ui/detective.py. Its class names all start with "mp-", so ".mp-stamp"
+       styles everything made with class="mp-stamp".
+    2. Streamlit's widgets. A container made with st.container(key="topbar")
+       gets the class "st-key-topbar", which is how one part of the screen is
+       picked out.
+
+  The colours are named once, in the :root block below, and used by name
+  everywhere else, so a colour can be changed in one place.
 */
 
 /* A typewriter font for headings. Without internet the browser falls back to Courier New. */
@@ -29,7 +41,7 @@
 /* ------------------------------------------------------------------ page */
 
 /*
-  The background is the picture chosen by set_scene() in ui/components.py,
+  The background is the picture chosen by set_scene() in ui/look.py,
   which sets --mp-scene. A dark veil is laid over it so that text stays easy
   to read, and the picture stays still while the page scrolls.
 */

@@ -13,17 +13,10 @@ from engine import (
     get_subformulas,
     parse,
 )
-from ui.components import (
-    SYNTAX_HELP,
-    detective_says,
-    kicker,
-    read_formula,
-    set_scene,
-    show_keyboard,
-    show_parse_error,
-    show_sidekick,
-    show_truth_table,
-)
+from ui.detective import detective_says, show_sidekick
+from ui.formula_box import SYNTAX_HELP, read_formula, show_keyboard, show_parse_error
+from ui.look import kicker, set_scene
+from ui.tables import show_truth_table
 
 
 def show_formula(text: str) -> Formula | None:

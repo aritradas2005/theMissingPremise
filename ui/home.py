@@ -4,7 +4,8 @@ Title screen: the detective, the game's name, the three ways to play, and the ha
 
 import streamlit as st
 
-from ui.components import DETECTIVE_NAME, set_scene, show_html
+from ui.detective import DETECTIVE_NAME
+from ui.look import set_scene, show_html
 
 set_scene("city")
 

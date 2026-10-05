@@ -1,15 +1,20 @@
 """
-Entry point. Start the game with:  python -m streamlit run app.py
+The starting point of the game. Run it with:
 
-This file sets up the page, loads the styling, and draws the bar that stays at
-the top of every screen. Each screen lives in ui/.
+    python -m streamlit run app.py
+
+This file does three things:
+    1. sets up the page and loads the styling and pictures;
+    2. lists the four screens, each of which is a file in ui/;
+    3. draws the bar at the top of every screen, then the screen itself.
 """
 
 import streamlit as st
 
 from game.case_loader import load_case_index
 from game.scoring import rank_for
-from ui.components import load_style, show_html
+from ui.look import load_style, show_html
+from ui.session import best_scores
 
 st.set_page_config(page_title="The Missing Premise", page_icon="🔎", layout="wide")
 load_style()
@@ -24,10 +29,16 @@ screens = [
 
 def show_top_bar() -> None:
     """The links to each screen, and the detective's rank, points and solved cases."""
-    case_ids = [entry["id"] for entry in load_case_index()]
-    scores = st.session_state.get("scores", {})
-    solved = [case_id for case_id in case_ids if case_id in scores]
-    points = sum(scores[case_id] for case_id in solved)
+    scores = best_scores()
+    cases = load_case_index()
+
+    # Only the written cases count towards the rank, not a typed custom case.
+    points = 0
+    solved = 0
+    for case in cases:
+        if case["id"] in scores:
+            points += scores[case["id"]]
+            solved += 1
 
     with st.container(key="topbar", horizontal=True, vertical_alignment="center"):
         st.page_link("ui/home.py", label="**🔎 The Missing Premise**")
@@ -38,7 +49,7 @@ def show_top_bar() -> None:
             '<div class="mp-badge">'
             f'<span class="mp-rank">{rank_for(points)}</span>'
             f"<span>{points} pts</span>"
-            f"<span>{len(solved)}/{len(case_ids)} cases</span>"
+            f"<span>{solved}/{len(cases)} cases</span>"
             "</div>"
         )
 

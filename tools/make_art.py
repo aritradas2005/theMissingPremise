@@ -23,6 +23,7 @@ BRASS = "#e3c06a"
 
 
 def rect(x, y, width, height, fill, opacity=1.0) -> str:
+    """A rectangle: its top-left corner, its size and its colour."""
     return (
         f'<rect x="{x:.0f}" y="{y:.0f}" width="{width:.0f}" height="{height:.0f}" '
         f'fill="{fill}" opacity="{opacity:.2f}"/>'
@@ -278,6 +279,7 @@ def sleeve(d: str) -> list[str]:
 
 
 def oval(cx, cy, rx, ry, fill, width: float = 0, opacity: float = 1.0) -> str:
+    """An oval: its centre and its two radii. width is the thickness of its outline, 0 for none."""
     outline = f' stroke="{OUTLINE}" stroke-width="{width}"' if width else ""
     return f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="{fill}" opacity="{opacity}"{outline}/>'
 
@@ -410,10 +412,12 @@ def portrait(mood: str = "calm") -> str:
 
 
 def happy_detective() -> str:
+    """The standing detective, smiling: shown when a case is closed."""
     return detective("happy")
 
 
 def happy_portrait() -> str:
+    """The round portrait, smiling."""
     return portrait("happy")
 
 
@@ -431,6 +435,7 @@ PICTURES = {
 
 
 def main() -> None:
+    """Draws every picture and saves it in ui/art/."""
     ART_DIR.mkdir(exist_ok=True)
     for name, draw in PICTURES.items():
         path = ART_DIR / f"{name}.svg"

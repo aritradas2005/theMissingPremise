@@ -1,6 +1,6 @@
 """
-The functions in ui/components.py that build HTML. They only return strings,
-so they are tested without running a screen.
+The functions in ui/ that build tables and pieces of HTML. They only return
+text, so they are tested here without running a screen.
 """
 
 import xml.etree.ElementTree as ET
@@ -8,20 +8,18 @@ import xml.etree.ElementTree as ET
 from engine import build_truth_table, check_argument, parse
 from game.game_state import ProofLine
 from tools.make_art import PICTURES
-from ui.components import (
-    ART_DIR,
-    art_variables,
-    clause_text,
-    detective_html,
-    html_table,
+from ui.board_pieces import (
+    legend_html,
     line_kind,
     proof_html,
     score_html,
     stars_html,
     stepper_html,
-    truth_table_cells,
-    truth_table_html,
 )
+from ui.detective import detective_html
+from ui.look import ART_DIR, picture_variables
+from ui.resolution_view import clause_text
+from ui.tables import html_table, truth_table_cells, truth_table_html
 
 
 def test_truth_table_cells_number_the_rows_and_show_t_and_f():
@@ -131,8 +129,16 @@ def test_every_picture_is_a_well_formed_svg():
         assert root.tag.endswith("svg")
 
 
-def test_art_variables_give_style_css_one_variable_per_picture():
-    css = art_variables()
+def test_legend_puts_each_meaning_in_quotes_and_is_empty_without_meanings():
+    html = legend_html({"B": "The dog barked", "M": ""})
+
+    assert '<span class="mp-legend-meaning">“The dog barked”</span>' in html
+    assert html.count("mp-legend-row") == 1          # M has no meaning, so no row
+    assert legend_html({"P": "", "Q": ""}) == ""     # a typed case has no meanings at all
+
+
+def test_picture_variables_give_style_css_one_variable_per_picture():
+    css = picture_variables()
 
     for name in PICTURE_NAMES:
         assert f'--mp-art-{name}: url("data:image/svg+xml;base64,' in css
