@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">
+<defs><pattern id="small" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0 H0 V40" fill="none" stroke="#9fb9c4" stroke-width="1" opacity="0.06"/></pattern><pattern id="large" width="200" height="200" patternUnits="userSpaceOnUse"><path d="M200 0 H0 V200" fill="none" stroke="#9fb9c4" stroke-width="1.5" opacity="0.10"/></pattern></defs>
+<rect x="0" y="0" width="1600" height="900" fill="#0d1317" opacity="1.00"/>
+<rect width="1600" height="900" fill="url(#small)"/>
+<rect width="1600" height="900" fill="url(#large)"/>
+<text x="1463" y="837" font-family="Consolas, 'Courier New', monospace" font-size="31" fill="#9fb9c4" opacity="0.04" transform="rotate(-1 1463 837)">∴</text>
+<text x="612" y="341" font-family="Consolas, 'Courier New', monospace" font-size="38" fill="#9fb9c4" opacity="0.06" transform="rotate(-20 612 341)">→</text>
+<text x="987" y="797" font-family="Consolas, 'Courier New', monospace" font-size="32" fill="#9fb9c4" opacity="0.05" transform="rotate(11 987 797)">∴</text>
+<text x="51" y="567" font-family="Consolas, 'Courier New', monospace" font-size="53" fill="#9fb9c4" opacity="0.06" transform="rotate(-17 51 567)">→</text>
+<text x="1242" y="535" font-family="Consolas, 'Courier New', monospace" font-size="68" fill="#9fb9c4" opacity="0.05" transform="rotate(-7 1242 535)">R</text>
+<text x="586" y="678" font-family="Consolas, 'Courier New', monospace" font-size="49" fill="#9fb9c4" opacity="0.10" transform="rotate(-2 586 678)">Q</text>
+<text x="1540" y="521" font-family="Consolas, 'Courier New', monospace" font-size="56" fill="#9fb9c4" opacity="0.05" transform="rotate(10 1540 521)">P</text>
+<text x="1255" y="608" font-family="Consolas, 'Courier New', monospace" font-size="36" fill="#9fb9c4" opacity="0.05" transform="rotate(-9 1255 608)">F</text>
+<text x="525" y="725" font-family="Consolas, 'Courier New', monospace" font-size="38" fill="#9fb9c4" opacity="0.07" transform="rotate(-15 525 725)">∧</text>
+<text x="685" y="517" font-family="Consolas, 'Courier New', monospace" font-size="62" fill="#9fb9c4" opacity="0.06" transform="rotate(17 685 517)">⊢</text>
+<text x="190" y="796" font-family="Consolas, 'Courier New', monospace" font-size="60" fill="#9fb9c4" opacity="0.06" transform="rotate(9 190 796)">F</text>
+<text x="361" y="166" font-family="Consolas, 'Courier New', monospace" font-size="65" fill="#9fb9c4" opacity="0.09" transform="rotate(11 361 166)">→</text>
+<text x="532" y="160" font-family="Consolas, 'Courier New', monospace" font-size="63" fill="#9fb9c4" opacity="0.05" transform="rotate(4 532 160)">∨</text>
+<text x="721" y="68" font-family="Consolas, 'Courier New', monospace" font-size="66" fill="#9fb9c4" opacity="0.06" transform="rotate(-19 721 68)">∨</text>
+<text x="1283" y="617" font-family="Consolas, 'Courier New', monospace" font-size="40" fill="#9fb9c4" opacity="0.09" transform="rotate(-17 1283 617)">F</text>
+<text x="1494" y="414" font-family="Consolas, 'Courier New', monospace" font-size="31" fill="#9fb9c4" opacity="0.06" transform="rotate(4 1494 414)">T</text>
+<text x="322" y="104" font-family="Consolas, 'Courier New', monospace" font-size="55" fill="#9fb9c4" opacity="0.07" transform="rotate(9 322 104)">↔</text>
+<text x="357" y="127" font-family="Consolas, 'Courier New', monospace" font-size="59" fill="#9fb9c4" opacity="0.08" transform="rotate(14 357 127)">F</text>
+<text x="1288" y="253" font-family="Consolas, 'Courier New', monospace" font-size="52" fill="#9fb9c4" opacity="0.05" transform="rotate(-20 1288 253)">T</text>
+<text x="1209" y="592" font-family="Consolas, 'Courier New', monospace" font-size="52" fill="#9fb9c4" opacity="0.09" transform="rotate(19 1209 592)">R</text>
+<text x="1284" y="98" font-family="Consolas, 'Courier New', monospace" font-size="66" fill="#9fb9c4" opacity="0.08" transform="rotate(14 1284 98)">↔</text>
+<text x="683" y="291" font-family="Consolas, 'Courier New', monospace" font-size="61" fill="#9fb9c4" opacity="0.08" transform="rotate(-17 683 291)">↔</text>
+<text x="189" y="570" font-family="Consolas, 'Courier New', monospace" font-size="47" fill="#9fb9c4" opacity="0.10" transform="rotate(7 189 570)">→</text>
+<text x="278" y="595" font-family="Consolas, 'Courier New', monospace" font-size="47" fill="#9fb9c4" opacity="0.07" transform="rotate(14 278 595)">∧</text>
+<text x="387" y="511" font-family="Consolas, 'Courier New', monospace" font-size="56" fill="#9fb9c4" opacity="0.09" transform="rotate(-3 387 511)">¬</text>
+<text x="548" y="60" font-family="Consolas, 'Courier New', monospace" font-size="35" fill="#9fb9c4" opacity="0.08" transform="rotate(5 548 60)">→</text>
+<text x="1258" y="65" font-family="Consolas, 'Courier New', monospace" font-size="67" fill="#9fb9c4" opacity="0.07" transform="rotate(7 1258 65)">∧</text>
+<text x="675" y="273" font-family="Consolas, 'Courier New', monospace" font-size="64" fill="#9fb9c4" opacity="0.08" transform="rotate(14 675 273)">R</text>
+<text x="887" y="482" font-family="Consolas, 'Courier New', monospace" font-size="45" fill="#9fb9c4" opacity="0.06" transform="rotate(-15 887 482)">→</text>
+<text x="1388" y="765" font-family="Consolas, 'Courier New', monospace" font-size="57" fill="#9fb9c4" opacity="0.06" transform="rotate(-19 1388 765)">Q</text>
+<text x="733" y="386" font-family="Consolas, 'Courier New', monospace" font-size="69" fill="#9fb9c4" opacity="0.06" transform="rotate(2 733 386)">↔</text>
+<text x="447" y="821" font-family="Consolas, 'Courier New', monospace" font-size="36" fill="#9fb9c4" opacity="0.06" transform="rotate(6 447 821)">Q</text>
+<text x="765" y="505" font-family="Consolas, 'Courier New', monospace" font-size="42" fill="#9fb9c4" opacity="0.07" transform="rotate(-15 765 505)">∴</text>
+<text x="359" y="262" font-family="Consolas, 'Courier New', monospace" font-size="35" fill="#9fb9c4" opacity="0.07" transform="rotate(-13 359 262)">P</text>
+<text x="742" y="142" font-family="Consolas, 'Courier New', monospace" font-size="62" fill="#9fb9c4" opacity="0.09" transform="rotate(-20 742 142)">¬</text>
+<text x="424" y="755" font-family="Consolas, 'Courier New', monospace" font-size="41" fill="#9fb9c4" opacity="0.09" transform="rotate(16 424 755)">Q</text>
+<text x="752" y="382" font-family="Consolas, 'Courier New', monospace" font-size="31" fill="#9fb9c4" opacity="0.06" transform="rotate(3 752 382)">P</text>
+<text x="249" y="743" font-family="Consolas, 'Courier New', monospace" font-size="31" fill="#9fb9c4" opacity="0.05" transform="rotate(12 249 743)">∴</text>
+<text x="973" y="343" font-family="Consolas, 'Courier New', monospace" font-size="31" fill="#9fb9c4" opacity="0.08" transform="rotate(18 973 343)">∨</text>
+<text x="84" y="141" font-family="Consolas, 'Courier New', monospace" font-size="37" fill="#9fb9c4" opacity="0.10" transform="rotate(-12 84 141)">P</text>
+<text x="1085" y="823" font-family="Consolas, 'Courier New', monospace" font-size="44" fill="#9fb9c4" opacity="0.07" transform="rotate(-2 1085 823)">P</text>
+<text x="1260" y="80" font-family="Consolas, 'Courier New', monospace" font-size="28" fill="#9fb9c4" opacity="0.08" transform="rotate(17 1260 80)">∧</text>
+<text x="530" y="153" font-family="Consolas, 'Courier New', monospace" font-size="31" fill="#9fb9c4" opacity="0.05" transform="rotate(-7 530 153)">→</text>
+<text x="1528" y="873" font-family="Consolas, 'Courier New', monospace" font-size="65" fill="#9fb9c4" opacity="0.05" transform="rotate(17 1528 873)">∴</text>
+<text x="1055" y="487" font-family="Consolas, 'Courier New', monospace" font-size="40" fill="#9fb9c4" opacity="0.08" transform="rotate(-1 1055 487)">T</text>
+<text x="1403" y="864" font-family="Consolas, 'Courier New', monospace" font-size="66" fill="#9fb9c4" opacity="0.05" transform="rotate(4 1403 864)">↔</text>
+<text x="1316" y="73" font-family="Consolas, 'Courier New', monospace" font-size="51" fill="#9fb9c4" opacity="0.06" transform="rotate(-7 1316 73)">Q</text>
+<text x="855" y="217" font-family="Consolas, 'Courier New', monospace" font-size="52" fill="#9fb9c4" opacity="0.07" transform="rotate(-18 855 217)">⊢</text>
+<text x="1168" y="437" font-family="Consolas, 'Courier New', monospace" font-size="36" fill="#9fb9c4" opacity="0.08" transform="rotate(6 1168 437)">⊢</text>
+<text x="404" y="305" font-family="Consolas, 'Courier New', monospace" font-size="68" fill="#9fb9c4" opacity="0.06" transform="rotate(-9 404 305)">∴</text>
+<text x="1302" y="524" font-family="Consolas, 'Courier New', monospace" font-size="27" fill="#9fb9c4" opacity="0.07" transform="rotate(19 1302 524)">Q</text>
+<text x="687" y="551" font-family="Consolas, 'Courier New', monospace" font-size="54" fill="#9fb9c4" opacity="0.10" transform="rotate(7 687 551)">∧</text>
+<text x="732" y="43" font-family="Consolas, 'Courier New', monospace" font-size="66" fill="#9fb9c4" opacity="0.06" transform="rotate(-17 732 43)">R</text>
+<text x="73" y="368" font-family="Consolas, 'Courier New', monospace" font-size="68" fill="#9fb9c4" opacity="0.08" transform="rotate(-3 73 368)">R</text>
+<circle cx="230" cy="660" r="120" fill="none" stroke="#9fb9c4" stroke-width="2" opacity="0.09"/>
+<circle cx="350" cy="660" r="120" fill="none" stroke="#9fb9c4" stroke-width="2" opacity="0.09"/>
+<circle cx="1360" cy="600" r="150" fill="none" stroke="#d0a94e" stroke-width="10" opacity="0.10"/>
+<line x1="1468" y1="708" x2="1580" y2="820" stroke="#d0a94e" stroke-width="22" stroke-linecap="round" opacity="0.10"/>
+</svg>

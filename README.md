@@ -4,7 +4,11 @@ A detective game where every case is an argument in propositional logic. Witness
 
 ISE-2 project for Discrete Mathematics (7MA206), Track A (Gamified Application), Unit I: Logic & Proof Techniques.
 
-> Status: in progress. The logic core (parser, evaluator, truth table, validity), the inference module (rule checker, CNF, resolution, missing premise) and the game logic (case validation, game state, hints, scoring, five cases) are written and tested. The screens in this repository are still placeholders; the finished screens have not been pushed yet.
+## What you can do
+
+- **Case files:** five cases of rising difficulty. Read the witness statements, find the clue that is the missing premise, then prove the conclusion one checked step at a time. Each case opens when the one before it is solved.
+- **Custom case:** type any premises and conclusion. You get the verdict, the truth table with counterexample rows marked, a resolution proof, a test of each typed clue as the missing premise, and the option to play your argument as a case.
+- **Truth table lab:** type any formula to see its truth table worked out column by column, whether it is a tautology, a contradiction or a contingency, and whether it is equivalent to a second formula.
 
 ## Proof techniques covered
 
@@ -79,7 +83,13 @@ game/                 the game rules; no screen code
   game_state.py         the proof so far, clues, steps, proof by contradiction
   hints.py              which clue to look at, which rule to try
   scoring.py            points, stars and rank
-ui/                   one file per screen, plus shared pieces
+ui/                   the screens
+  home.py, case_files.py, custom_case.py, truth_table_lab.py   one file per screen
+  board.py              the deduction board, shared by case files and custom case
+  components.py         truth tables, proof lines, stamps and other drawn pieces
+  style.css             the look of the game: colours, fonts, spacing
+  art/                  the pictures: three backgrounds and the detective, as SVG files
+tools/make_art.py     the script that draws the pictures
 data/cases/           one JSON file per case, listed in index.json
 tests/                one test file per module
 docs/screenshots/     screenshots for the report

@@ -1,7 +1,11 @@
 [theme]
 base = "dark"
 primaryColor = "#d0a94e"
-backgroundColor = "#15171c"
-secondaryBackgroundColor = "#1f232b"
-textColor = "#e9e3d2"
+backgroundColor = "#0f0e0c"
+secondaryBackgroundColor = "#1a1814"
+textColor = "#eadfc6"
 font = "serif"
+
+[client]
+# Hides Streamlit's own Deploy button and menu, which are not part of the game.
+toolbarMode = "minimal"
