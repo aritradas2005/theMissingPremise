@@ -20,11 +20,11 @@ A detective game where every case is an argument in propositional logic. Witness
 
 ## Team
 
-| Roll no. | Name | Module |
-| --- | --- | --- |
-| 256109007 | Aritra Das | Logic core (parser, evaluator, truth table, validity) and game logic (game state, hints, scoring, cases) |
-| 256109015 | Prathmesh Khare | Inference: rule checker, CNF, resolution, missing premise |
-| 256109003 | Ganesh Chavan | Screens and artwork: title screen, case screens, deduction board, custom case, truth table lab, styling |
+| Roll no. | Name | GitHub | Module |
+| --- | --- | --- | --- |
+| 256109007 | Aritra Das | [@aritradas2005](https://github.com/aritradas2005) | Logic core (parser, evaluator, truth table, validity) and game logic (game state, hints, scoring, cases) |
+| 256109015 | Prathmesh Khare | [@khareprathmesh14](https://github.com/khareprathmesh14) | Inference: rule checker, CNF, resolution, missing premise |
+| 256109003 | Ganesh Chavan | [@killdog07](https://github.com/killdog07) | Screens and artwork: title screen, case screens, deduction board, custom case, truth table lab, styling |
 
 ## What you can do
 
